@@ -1,0 +1,54 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: geneflow
+      POSTGRES_USER: geneflow
+      POSTGRES_PASSWORD: geneflow
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geneflow -d geneflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 8
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env.example
+    environment:
+      DATABASE_URL: postgresql+psycopg://geneflow:geneflow@db:5432/geneflow
+      CORS_ORIGINS: http://localhost:5173
+    ports:
+      - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend/app:/app/app
+
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE: http://localhost:8001
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+
+volumes:
+  postgres_data:

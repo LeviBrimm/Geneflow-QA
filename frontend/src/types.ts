@@ -1,0 +1,68 @@
+export type AuthResponse = {
+  access_token: string;
+  token_type: string;
+  email: string;
+};
+
+export type AnalyzeResponse = {
+  query_id: number;
+  job_id: string;
+  status: JobStatus;
+};
+
+export type JobStatus = "queued" | "processing" | "completed" | "failed";
+
+export type JobResponse = {
+  job_id: string;
+  query_id: number;
+  status: JobStatus;
+  error_message?: string | null;
+};
+
+export type VariantResult = {
+  query_id: number;
+  raw_input: string;
+  status: JobStatus;
+  created_at: string;
+  job_id: string;
+  parsed: {
+    gene: string;
+    notation: string;
+    variant_type: string;
+    is_valid: boolean;
+  };
+  reference: {
+    gene_full_name: string;
+    gene_description: string;
+    rsid: string;
+    significance: string;
+    condition: string;
+    allele_frequency: number;
+    summary: string;
+    position: number;
+    domain: string;
+  };
+  explanations: {
+    general: string | null;
+    technical: string | null;
+    model_used: string | null;
+  };
+  similar_variants: SimilarVariant[];
+};
+
+export type HistoryItem = {
+  query_id: number;
+  raw_input: string;
+  status: JobStatus;
+  created_at: string;
+  job_id: string;
+};
+
+export type SimilarVariant = {
+  variant_id: number;
+  gene: string;
+  hgvs: string;
+  significance: string;
+  condition: string;
+  similarity_score: number;
+};
