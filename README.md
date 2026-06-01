@@ -1,18 +1,18 @@
 # GeneFlow QA Platform
 
-GeneFlow QA Platform is a full-stack genomic variant interpretation demo built to showcase backend engineering, SDET automation, async processing, API design, and production-style reliability.
+GeneFlow QA Platform is a full-stack web app for exploring public genomic variant reference data. A user enters a variant, the app parses it, checks it against seeded reference records, starts an analysis job, generates guarded explanations, shows similar variants, saves the query, and produces an HTML report.
 
-The app uses public/sample-safe reference records only. It is educational software and does not provide medical advice.
+This is an educational project. It uses public/sample-safe data only, does not use patient data, and does not provide medical advice.
 
 ## Features
 
-- FastAPI backend with typed routes for auth, analysis jobs, history, similar variants, reports, and health checks.
-- React + TypeScript frontend with login/register, variant submission, status polling, result detail, gene visualization, history, and HTML reports.
-- PostgreSQL-first data model with users, genes, variants, variant queries, analysis jobs, explanations, and vector-like embeddings.
-- Deterministic mock AI explanation service by default, with an explicit seam for real LLM integration.
-- Unit, integration, failure-path, and Playwright E2E test scaffolding.
-- Docker Compose stack with PostgreSQL, Redis, backend, and frontend.
-- GitHub Actions workflow for backend tests and frontend build.
+- FastAPI API for auth, variant analysis, job status, history, similar variants, reports, and health checks.
+- React + TypeScript frontend with registration, variant submission, polling, results, history, and report access.
+- PostgreSQL data model for users, genes, variants, submitted queries, jobs, explanations, and embeddings.
+- Deterministic mock explanation service by default, so the app can run and test without an external AI key.
+- Seeded reference examples for `BRCA1`, `TP53`, and `CFTR`.
+- Automated backend tests and Playwright E2E tests.
+- Docker Compose setup with PostgreSQL, Redis, backend, and frontend.
 
 ## Architecture
 
@@ -24,7 +24,7 @@ React/Vite UI
       -> parser -> reference lookup -> AI explanation -> similarity -> report
 ```
 
-Redis is included in Docker Compose to match the production queue direction. The MVP uses FastAPI background tasks so the project stays simple to run locally; the job service is isolated so Celery/RQ can replace it later.
+Redis is included because the job flow is intended to move toward a dedicated worker queue. The current MVP uses FastAPI background tasks to keep local setup simple, with the job logic isolated so a Redis-backed worker can replace it cleanly.
 
 ## API Surface
 
@@ -70,7 +70,7 @@ Tests use SQLite in memory for speed while the application default remains Postg
 
 ## QA Strategy
 
-The project is intentionally framed as an SDET showcase. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
+Testing is a core part of the project, not an afterthought. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
 
 ## Frontend
 
@@ -81,18 +81,12 @@ npm run dev
 npm run build
 ```
 
-Run E2E tests after the backend is running:
+Run E2E tests:
 
 ```bash
 cd frontend
 npm run test:e2e
 ```
-
-## Portfolio Positioning
-
-Resume wording:
-
-> Built GeneFlow, a full-stack genomic variant analysis platform using FastAPI, React, PostgreSQL, async job processing, AI-generated explanations, Playwright E2E testing, integration tests, Docker, and CI/CD.
 
 ## Deferred Enhancements
 
