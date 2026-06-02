@@ -24,7 +24,8 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 - Parser accepts supported examples and rejects invalid strings.
 - Auth covers registration, duplicate registration, login failure, missing token, and invalid token.
 - API flow covers analysis creation, job lookup, result retrieval, history, report generation, invalid variant, unknown variant, and missing resources.
-- Failure tests verify a background job persists `failed` status and error message when reference data is missing.
+- Queue tests verify analysis jobs are enqueued through RQ.
+- Failure tests verify a worker job persists `failed` status and error message when reference data is missing.
 - Playwright covers registration, analysis submission, processing feedback, result rendering, history navigation, and validation error display.
 
 ## Test Data
@@ -52,4 +53,4 @@ The seeded data is intentionally small so assertions stay stable and understanda
 - Add contract tests from OpenAPI schema.
 - Add load tests for `POST /api/variants/analyze` and `GET /api/jobs/{job_id}`.
 - Add mutation-style parser cases for HGVS edge inputs.
-- Replace FastAPI background tasks with Redis-backed worker tests when Celery/RQ is introduced.
+- Add Docker-level worker health checks or smoke tests.

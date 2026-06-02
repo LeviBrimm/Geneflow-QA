@@ -1,14 +1,14 @@
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_current_user
 from app.db.database import get_db
-from app.jobs.analysis import run_analysis_job
+from app.jobs.queue import enqueue_analysis_job
 from app.models.user import User
 from app.models.variant import AnalysisJob, VariantQuery
 from app.services.parser import VariantParseError, parse_variant
@@ -31,7 +31,6 @@ class AnalyzeResponse(BaseModel):
 @router.post("/analyze", response_model=AnalyzeResponse, status_code=status.HTTP_202_ACCEPTED)
 def analyze_variant(
     payload: AnalyzeRequest,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> AnalyzeResponse:
@@ -57,7 +56,7 @@ def analyze_variant(
     job = AnalysisJob(id=uuid.uuid4().hex, query_id=query.id, status="queued")
     db.add(job)
     db.commit()
-    background_tasks.add_task(run_analysis_job, job.id)
+    enqueue_analysis_job(job.id)
     return AnalyzeResponse(query_id=query.id, job_id=job.id, status=job.status)
 
 

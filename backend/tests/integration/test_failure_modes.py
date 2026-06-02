@@ -8,7 +8,7 @@ from app.services.reference_data import lookup_variant
 from app.services.parser import parse_variant
 
 
-def test_background_job_persists_failure_when_reference_is_missing(client, auth_headers):
+def test_worker_job_persists_failure_when_reference_is_missing(client, auth_headers):
     register = client.post(
         "/api/auth/register",
         json={"email": "failure@example.com", "password": "password123"},

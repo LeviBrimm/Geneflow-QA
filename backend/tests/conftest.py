@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 os.environ["DATABASE_URL"] = "sqlite+pysqlite:///:memory:"
 os.environ["AUTH_SECRET"] = "test-secret"
+os.environ["ANALYSIS_QUEUE_MODE"] = "inline"
 
 from app.db.database import Base, SessionLocal, engine, get_db  # noqa: E402
 from app.main import create_app  # noqa: E402

@@ -12,7 +12,7 @@ This is an educational project. It uses public/sample-safe data only, does not u
 - Deterministic mock explanation service by default, so the app can run and test without an external AI key.
 - Seeded reference examples for `BRCA1`, `TP53`, and `CFTR`.
 - Automated backend tests and Playwright E2E tests.
-- Docker Compose setup with PostgreSQL, Redis, backend, and frontend.
+- Docker Compose setup with PostgreSQL, Redis, backend, worker, and frontend.
 
 ## Architecture
 
@@ -20,11 +20,12 @@ This is an educational project. It uses public/sample-safe data only, does not u
 React/Vite UI
   -> FastAPI REST API
     -> PostgreSQL reference data and query history
-    -> Background analysis task
-      -> parser -> reference lookup -> AI explanation -> similarity -> report
+    -> Redis/RQ analysis queue
+      -> Worker process
+        -> parser -> reference lookup -> AI explanation -> similarity -> report
 ```
 
-Redis is included because the job flow is intended to move toward a dedicated worker queue. The current MVP uses FastAPI background tasks to keep local setup simple, with the job logic isolated so a Redis-backed worker can replace it cleanly.
+The API process creates query/job records and enqueues analysis work. A separate worker process listens on Redis, runs the analysis job, and updates the database with completed or failed status.
 
 ## API Surface
 
@@ -92,7 +93,8 @@ npm run test:e2e
 
 - Real LLM provider integration.
 - pgvector-backed similarity queries.
-- Celery/RQ worker using Redis.
+- API contract tests from the generated OpenAPI schema.
+- Lightweight load tests for health, auth, analysis submission, and job polling.
 - PDF export.
 - OAuth.
 - Cloud deployment and CloudWatch/OpenTelemetry metrics.
