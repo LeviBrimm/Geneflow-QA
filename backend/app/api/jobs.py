@@ -9,7 +9,13 @@ from app.models.variant import AnalysisJob
 router = APIRouter(prefix="/api/jobs", tags=["jobs"])
 
 
-@router.get("/{job_id}")
+@router.get(
+    "/{job_id}",
+    responses={
+        401: {"description": "Missing or invalid bearer token."},
+        404: {"description": "Job not found."},
+    },
+)
 def get_job(job_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> dict:
     job = db.get(AnalysisJob, job_id)
     if not job or job.query.user_id != current_user.id:

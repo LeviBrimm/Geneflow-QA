@@ -22,7 +22,12 @@ class AuthResponse(BaseModel):
     email: EmailStr
 
 
-@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/register",
+    response_model=AuthResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={409: {"description": "Email already registered."}},
+)
 def register(payload: AuthRequest, db: Session = Depends(get_db)) -> AuthResponse:
     existing = db.scalar(select(User).where(User.email == payload.email.lower()))
     if existing:
@@ -34,7 +39,7 @@ def register(payload: AuthRequest, db: Session = Depends(get_db)) -> AuthRespons
     return AuthResponse(access_token=create_access_token(user.id, user.email), email=user.email)
 
 
-@router.post("/login", response_model=AuthResponse)
+@router.post("/login", response_model=AuthResponse, responses={401: {"description": "Invalid credentials."}})
 def login(payload: AuthRequest, db: Session = Depends(get_db)) -> AuthResponse:
     user = db.scalar(select(User).where(User.email == payload.email.lower()))
     if not user or not verify_password(payload.password, user.password_hash):

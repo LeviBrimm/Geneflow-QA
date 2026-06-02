@@ -7,6 +7,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 ## Test Layers
 
 - Unit tests cover deterministic business logic: parser validation, AI prompt guardrails, and similarity math.
+- Contract tests inspect FastAPI's generated OpenAPI schema for required endpoints, response codes, auth parameters, and request/response models.
 - Integration tests exercise FastAPI routes with an in-memory database: auth, protected routes, variant submission, job polling, history, reports, invalid input, missing records, and persisted job failures.
 - E2E tests use Playwright with mocked API responses so UI workflows can run consistently in CI without external services.
 - CI runs backend tests, frontend build, and Playwright E2E checks on every push and pull request.
@@ -23,6 +24,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 
 - Parser accepts supported examples and rejects invalid strings.
 - Auth covers registration, duplicate registration, login failure, missing token, and invalid token.
+- API contract tests cover required paths, HTTP methods, documented response codes, auth parameters, and analysis request/response schemas.
 - API flow covers analysis creation, job lookup, result retrieval, history, report generation, invalid variant, unknown variant, and missing resources.
 - Queue tests verify analysis jobs are enqueued through RQ.
 - Failure tests verify a worker job persists `failed` status and error message when reference data is missing.
@@ -50,7 +52,6 @@ The seeded data is intentionally small so assertions stay stable and understanda
 
 ## Next Automation Improvements
 
-- Add contract tests from OpenAPI schema.
 - Add load tests for `POST /api/variants/analyze` and `GET /api/jobs/{job_id}`.
 - Add mutation-style parser cases for HGVS edge inputs.
 - Add Docker-level worker health checks or smoke tests.
