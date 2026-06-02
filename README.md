@@ -77,6 +77,14 @@ Testing is a core part of the project, not an afterthought. See [docs/test-strat
 
 Lightweight k6 checks live in [load-tests](load-tests). They exercise health, auth, analysis submission, and job polling against the local Docker stack.
 
+## Docker Smoke Test
+
+After the Docker stack is running, this script verifies the backend, Redis/RQ worker, database persistence, and result retrieval path:
+
+```bash
+bash scripts/docker-worker-smoke.sh
+```
+
 ## Frontend
 
 ```bash

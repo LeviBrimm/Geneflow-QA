@@ -11,6 +11,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 - Integration tests exercise FastAPI routes with an in-memory database: auth, protected routes, variant submission, job polling, history, reports, invalid input, missing records, and persisted job failures.
 - E2E tests use Playwright with mocked API responses so UI workflows can run consistently in CI without external services.
 - Load tests use k6 against the Docker stack to exercise health, auth, analysis submission, and job polling under light concurrent traffic.
+- Docker smoke tests verify the live backend, Redis/RQ worker, database persistence, and result retrieval path.
 - CI runs backend tests, frontend build, and Playwright E2E checks on every push and pull request.
 
 ## High-Risk Areas
@@ -31,6 +32,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 - Failure tests verify a worker job persists `failed` status and error message when reference data is missing.
 - Playwright covers registration, analysis submission, processing feedback, result rendering, history navigation, and validation error display.
 - k6 smoke load tests cover health, auth, analysis submission, and job polling against the live Docker stack.
+- Docker worker smoke tests submit a real job and verify it reaches `completed` with persisted explanations.
 
 ## Test Data
 
@@ -54,4 +56,4 @@ The seeded data is intentionally small so assertions stay stable and understanda
 
 ## Next Automation Improvements
 
-- Add Docker-level worker health checks or smoke tests.
+- Add deployment smoke tests after the app has a hosted environment.
