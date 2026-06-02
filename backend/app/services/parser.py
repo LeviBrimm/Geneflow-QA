@@ -15,12 +15,15 @@ class ParsedVariant:
 
 
 GENE_PATTERN = r"(?P<gene>[A-Z0-9]{2,12})"
-CDNA_PATTERN = r"c\.(?P<cpos>\d+)(?P<change>dup[A-Z]?|del[A-Z]*|ins[A-Z]+|[ACGT]>[ACGT])"
+CDNA_PATTERN = r"c\.(?P<cpos>\d+(?:_\d+)?)(?P<change>dup[A-Z]+|del[A-Z]*|ins[A-Z]+|[ACGT]>[ACGT])"
 PROTEIN_PATTERN = r"p\.(?P<protein>[A-Z][a-z]{2}\d+[A-Z][a-z]{2}|[A-Z]\d+[A-Z]|[A-Z]\d+\*)"
 DELTA_PATTERN = r"(?P<delta>[ΔD]F508)"
 
 
 def parse_variant(raw_input: str) -> ParsedVariant:
+    if not isinstance(raw_input, str):
+        raise VariantParseError("Variant input must be a string.")
+
     cleaned = " ".join(raw_input.strip().replace("∆", "Δ").split())
     if not cleaned:
         raise VariantParseError("Variant input is required.")

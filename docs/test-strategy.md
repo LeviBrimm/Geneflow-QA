@@ -23,7 +23,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 
 ## Current Automated Coverage
 
-- Parser accepts supported examples and rejects invalid strings.
+- Parser accepts supported examples, normalizes whitespace and delta symbols, and rejects malformed or unsupported notation.
 - Auth covers registration, duplicate registration, login failure, missing token, and invalid token.
 - API contract tests cover required paths, HTTP methods, documented response codes, auth parameters, and analysis request/response schemas.
 - API flow covers analysis creation, job lookup, result retrieval, history, report generation, invalid variant, unknown variant, and missing resources.
@@ -54,5 +54,4 @@ The seeded data is intentionally small so assertions stay stable and understanda
 
 ## Next Automation Improvements
 
-- Add mutation-style parser cases for HGVS edge inputs.
 - Add Docker-level worker health checks or smoke tests.
