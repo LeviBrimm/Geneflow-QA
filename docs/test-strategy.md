@@ -10,6 +10,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 - Contract tests inspect FastAPI's generated OpenAPI schema for required endpoints, response codes, auth parameters, and request/response models.
 - Integration tests exercise FastAPI routes with an in-memory database: auth, protected routes, variant submission, job polling, history, reports, invalid input, missing records, and persisted job failures.
 - E2E tests use Playwright with mocked API responses so UI workflows can run consistently in CI without external services.
+- Load tests use k6 against the Docker stack to exercise health, auth, analysis submission, and job polling under light concurrent traffic.
 - CI runs backend tests, frontend build, and Playwright E2E checks on every push and pull request.
 
 ## High-Risk Areas
@@ -29,6 +30,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 - Queue tests verify analysis jobs are enqueued through RQ.
 - Failure tests verify a worker job persists `failed` status and error message when reference data is missing.
 - Playwright covers registration, analysis submission, processing feedback, result rendering, history navigation, and validation error display.
+- k6 smoke load tests cover health, auth, analysis submission, and job polling against the live Docker stack.
 
 ## Test Data
 
@@ -52,6 +54,5 @@ The seeded data is intentionally small so assertions stay stable and understanda
 
 ## Next Automation Improvements
 
-- Add load tests for `POST /api/variants/analyze` and `GET /api/jobs/{job_id}`.
 - Add mutation-style parser cases for HGVS edge inputs.
 - Add Docker-level worker health checks or smoke tests.

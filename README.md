@@ -73,6 +73,10 @@ Tests use SQLite in memory for speed while the application default remains Postg
 
 Testing is a core part of the project, not an afterthought. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
 
+## Load Tests
+
+Lightweight k6 checks live in [load-tests](load-tests). They exercise health, auth, analysis submission, and job polling against the local Docker stack.
+
 ## Frontend
 
 ```bash
@@ -93,8 +97,6 @@ npm run test:e2e
 
 - Real LLM provider integration.
 - pgvector-backed similarity queries.
-- API contract tests from the generated OpenAPI schema.
-- Lightweight load tests for health, auth, analysis submission, and job polling.
 - PDF export.
 - OAuth.
 - Cloud deployment and CloudWatch/OpenTelemetry metrics.
