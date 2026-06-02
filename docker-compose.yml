@@ -28,8 +28,28 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://geneflow:geneflow@db:5432/geneflow
       CORS_ORIGINS: http://localhost:5173
+      REDIS_URL: redis://redis:6379/0
+      ANALYSIS_QUEUE_MODE: rq
     ports:
       - "8001:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend/app:/app/app
+
+  worker:
+    build:
+      context: ./backend
+    command: python worker.py
+    env_file:
+      - ./backend/.env.example
+    environment:
+      DATABASE_URL: postgresql+psycopg://geneflow:geneflow@db:5432/geneflow
+      REDIS_URL: redis://redis:6379/0
+      ANALYSIS_QUEUE_MODE: rq
     depends_on:
       db:
         condition: service_healthy

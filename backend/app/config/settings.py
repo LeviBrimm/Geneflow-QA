@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     ai_mode: str = "mock"
     openai_api_key: str | None = None
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
+    redis_url: str = "redis://localhost:6379/0"
+    analysis_queue_name: str = "analysis"
+    analysis_queue_mode: str = "rq"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
