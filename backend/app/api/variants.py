@@ -28,7 +28,16 @@ class AnalyzeResponse(BaseModel):
     status: str
 
 
-@router.post("/analyze", response_model=AnalyzeResponse, status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/analyze",
+    response_model=AnalyzeResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        401: {"description": "Missing or invalid bearer token."},
+        404: {"description": "Variant not found in reference data."},
+        422: {"description": "Invalid variant input."},
+    },
+)
 def analyze_variant(
     payload: AnalyzeRequest,
     db: Session = Depends(get_db),
@@ -60,7 +69,7 @@ def analyze_variant(
     return AnalyzeResponse(query_id=query.id, job_id=job.id, status=job.status)
 
 
-@router.get("/history")
+@router.get("/history", responses={401: {"description": "Missing or invalid bearer token."}})
 def history(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -73,7 +82,13 @@ def history(
     return [_query_summary(query) for query in queries]
 
 
-@router.get("/{query_id}")
+@router.get(
+    "/{query_id}",
+    responses={
+        401: {"description": "Missing or invalid bearer token."},
+        404: {"description": "Query not found."},
+    },
+)
 def get_variant_result(
     query_id: int,
     db: Session = Depends(get_db),

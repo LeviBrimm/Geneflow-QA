@@ -12,7 +12,13 @@ from app.services.similarity import similar_variants
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
 
-@router.get("/{query_id}")
+@router.get(
+    "/{query_id}",
+    responses={
+        401: {"description": "Missing or invalid bearer token."},
+        404: {"description": "Query not found."},
+    },
+)
 def report(query_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> Response:
     query = db.scalar(
         select(VariantQuery)
