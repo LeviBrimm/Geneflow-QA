@@ -35,6 +35,7 @@ export function ResultPage() {
           <div>
             <p className="eyebrow">Analysis result</p>
             <h1>{result.raw_input}</h1>
+            <span className={`badge ${result.status}`}>{result.status}</span>
           </div>
           <div className="actions">
             <button className="secondary-button" onClick={load} title="Refresh result">
@@ -62,8 +63,14 @@ export function ResultPage() {
         <GeneVisualization result={result} />
       </div>
 
-      <div className="panel">
-        <h2>Explanations</h2>
+      <div className="panel explanation-panel">
+        <div className="section-header tight">
+          <div>
+            <p className="eyebrow">Generated context</p>
+            <h2>Explanations</h2>
+          </div>
+          <span className="model-pill">{result.explanations.model_used ?? "processing"}</span>
+        </div>
         <div className="explanation-grid">
           <article>
             <h3>General</h3>
@@ -77,7 +84,12 @@ export function ResultPage() {
       </div>
 
       <div className="panel">
-        <h2>Similar Variants</h2>
+        <div className="section-header tight">
+          <div>
+            <p className="eyebrow">Similarity</p>
+            <h2>Similar Variants</h2>
+          </div>
+        </div>
         <div className="table">
           {result.similar_variants.map((item) => (
             <div className="table-row" key={item.variant_id}>
