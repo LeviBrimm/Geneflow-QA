@@ -57,7 +57,13 @@ Example variants:
 - `TP53 p.R175H`
 - `CFTR ΔF508`
 
-## Backend Tests
+## QA Strategy
+
+Testing is a core part of the project, not an afterthought. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
+
+## Verification
+
+Backend tests use SQLite in memory for speed while the application default remains PostgreSQL.
 
 ```bash
 cd backend
@@ -67,39 +73,37 @@ pip install -r requirements.txt
 pytest
 ```
 
-Tests use SQLite in memory for speed while the application default remains PostgreSQL.
-
-## QA Strategy
-
-Testing is a core part of the project, not an afterthought. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
-
-## Load Tests
-
-Lightweight k6 checks live in [load-tests](load-tests). They exercise health, auth, analysis submission, and job polling against the local Docker stack.
-
-## Docker Smoke Test
-
-After the Docker stack is running, this script verifies the backend, Redis/RQ worker, database persistence, and result retrieval path:
-
-```bash
-bash scripts/docker-worker-smoke.sh
-```
-
-## Frontend
+Frontend build:
 
 ```bash
 cd frontend
 npm install
-npm run dev
 npm run build
 ```
 
-Run E2E tests:
+Playwright E2E tests:
 
 ```bash
 cd frontend
 npm run test:e2e
 ```
+
+Docker worker smoke test:
+
+```bash
+bash scripts/docker-worker-smoke.sh
+```
+
+Lightweight k6 load smoke test:
+
+```bash
+docker run --rm \
+  -e BASE_URL=http://host.docker.internal:8001 \
+  -v "$PWD/load-tests:/scripts" \
+  grafana/k6:0.55.0 run /scripts/geneflow-smoke.js
+```
+
+See [load-tests](load-tests) for k6 options.
 
 ## Deferred Enhancements
 
