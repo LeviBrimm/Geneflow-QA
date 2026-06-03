@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import { AuthPanel } from "../components/AuthPanel";
 import { VariantForm } from "../components/VariantForm";
-import { analyze, getJob, tokenStore } from "../lib/api";
+import { AUTH_CHANGED_EVENT, analyze, getJob, tokenStore } from "../lib/api";
 import type { JobStatus } from "../types";
 
 export function HomePage() {
@@ -13,7 +13,17 @@ export function HomePage() {
   const [isAuthed, setIsAuthed] = useState(Boolean(tokenStore.get()));
 
   useEffect(() => {
-    setIsAuthed(Boolean(tokenStore.get()));
+    function syncAuthState() {
+      setIsAuthed(Boolean(tokenStore.get()));
+    }
+
+    syncAuthState();
+    window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+    window.addEventListener("storage", syncAuthState);
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+      window.removeEventListener("storage", syncAuthState);
+    };
   }, []);
 
   async function handleAnalyze(rawInput: string) {
