@@ -9,6 +9,7 @@ This is an educational project. It uses public/sample-safe data only, does not u
 - FastAPI API for auth, variant analysis, job status, history, similar variants, reports, and health checks.
 - React + TypeScript frontend with registration, variant submission, polling, results, history, and report access.
 - PostgreSQL data model for users, genes, variants, submitted queries, jobs, explanations, and embeddings.
+- Alembic migrations for repeatable schema setup in Docker and local environments.
 - Deterministic mock explanation service by default, so the app can run and test without an external AI key.
 - Seeded reference examples for `BRCA1`, `TP53`, and `CFTR`.
 - Automated backend tests and Playwright E2E tests.
@@ -92,6 +93,21 @@ Docker worker smoke test:
 
 ```bash
 bash scripts/docker-worker-smoke.sh
+```
+
+Database migrations:
+
+```bash
+cd backend
+alembic upgrade head
+alembic revision --autogenerate -m "describe schema change"
+```
+
+If an older local Docker database was created before migrations existed, reset the local dev volume once:
+
+```bash
+docker compose down -v
+docker compose up --build
 ```
 
 Lightweight k6 load smoke test:
