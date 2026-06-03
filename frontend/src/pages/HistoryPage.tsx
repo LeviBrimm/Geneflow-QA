@@ -38,7 +38,7 @@ export function HistoryPage() {
       <div className="table">
         {items.map((item) => (
           <Link to={`/results/${item.query_id}`} className="table-row" key={item.query_id}>
-            <span>{item.raw_input}</span>
+            <strong>{item.raw_input}</strong>
             <span className={`badge ${item.status}`}>{item.status}</span>
             <span>{new Date(item.created_at).toLocaleString()}</span>
           </Link>

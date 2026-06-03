@@ -58,9 +58,13 @@ export function HomePage() {
   return (
     <div className="workspace-grid">
       <section className="panel primary-panel">
-        <div>
+        <div className="hero-copy">
           <p className="eyebrow">Variant interpretation workflow</p>
           <h1>Analyze public genomic variant references with an auditable QA flow.</h1>
+          <p className="lede">
+            Submit a known variant, watch the queued analysis complete, and review reference context, guarded
+            explanations, similar variants, history, and report output.
+          </p>
         </div>
         {isAuthed ? (
           <VariantForm onSubmit={handleAnalyze} disabled={status !== "idle"} />
@@ -76,8 +80,11 @@ export function HomePage() {
         {message && <p className="error">{message}</p>}
       </section>
 
-      <aside className="panel compact-panel">
-        <h2>Pipeline</h2>
+      <aside className="panel compact-panel process-panel">
+        <div>
+          <p className="eyebrow">System path</p>
+          <h2>Queue-backed analysis</h2>
+        </div>
         <ol className="pipeline">
           <li>Parse and validate HGVS-style input</li>
           <li>Match seeded public reference data</li>
@@ -85,6 +92,12 @@ export function HomePage() {
           <li>Generate guarded explanations</li>
           <li>Persist history and report output</li>
         </ol>
+        <div className="signal-grid" aria-label="Platform signals">
+          <span>FastAPI</span>
+          <span>Postgres</span>
+          <span>Redis/RQ</span>
+          <span>Playwright</span>
+        </div>
       </aside>
     </div>
   );

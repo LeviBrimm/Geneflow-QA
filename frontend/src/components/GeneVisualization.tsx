@@ -15,7 +15,7 @@ export function GeneVisualization({ result }: { result: VariantResult }) {
         <span className="domain domain-right">Domain B</span>
         <span className="variant-marker" style={{ left: `${marker}%` }} title={result.parsed.notation} />
       </div>
-      <p>{result.reference.summary}</p>
+      <p className="gene-summary">{result.reference.summary}</p>
     </div>
   );
 }
