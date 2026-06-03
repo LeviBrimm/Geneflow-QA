@@ -98,3 +98,17 @@ test("invalid variant submission surfaces API validation errors", async ({ page 
 
   await expect(page.getByText("Unable to parse variant.")).toBeVisible();
 });
+
+test("expired sessions clear stored auth and return to login", async ({ page }) => {
+  await page.route("**/api/variants/history", async (route) => {
+    await route.fulfill({ status: 401, json: { detail: "Token expired." } });
+  });
+
+  await page.goto("/");
+  await page.getByRole("button", { name: /create account/i }).click();
+  await page.getByRole("link", { name: /history/i }).click();
+
+  await expect(page.getByRole("button", { name: /create account/i })).toBeVisible();
+  await expect(page.getByRole("button", { name: /log out/i })).toHaveCount(0);
+  await expect(page.evaluate(() => window.localStorage.getItem("geneflow_token"))).resolves.toBeNull();
+});

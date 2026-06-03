@@ -1,6 +1,7 @@
 import type { AnalyzeResponse, AuthResponse, HistoryItem, JobResponse, VariantResult } from "../types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "http://localhost:8000";
+export const AUTH_CHANGED_EVENT = "geneflow-auth-changed";
 
 export class ApiError extends Error {
   status: number;
@@ -13,8 +14,14 @@ export class ApiError extends Error {
 
 export const tokenStore = {
   get: () => window.localStorage.getItem("geneflow_token"),
-  set: (token: string) => window.localStorage.setItem("geneflow_token", token),
-  clear: () => window.localStorage.removeItem("geneflow_token"),
+  set: (token: string) => {
+    window.localStorage.setItem("geneflow_token", token);
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+  },
+  clear: () => {
+    window.localStorage.removeItem("geneflow_token");
+    window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
+  },
 };
 
 export async function register(email: string, password: string): Promise<AuthResponse> {
@@ -60,6 +67,12 @@ async function request<T>(path: string, init: RequestInit = {}, withAuth = true)
       message = payload.detail ?? message;
     } catch {
       message = response.statusText;
+    }
+    if (withAuth && response.status === 401) {
+      tokenStore.clear();
+      if (message.toLowerCase().includes("expired")) {
+        message = "Session expired. Please log in again.";
+      }
     }
     throw new ApiError(response.status, message);
   }

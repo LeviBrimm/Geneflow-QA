@@ -1,14 +1,32 @@
 import { Activity, Database, FileText, History, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
 import { NavLink, Route, Routes, useNavigate } from "react-router-dom";
 
 import { HistoryPage } from "./pages/HistoryPage";
 import { HomePage } from "./pages/HomePage";
 import { ResultPage } from "./pages/ResultPage";
-import { tokenStore } from "./lib/api";
+import { AUTH_CHANGED_EVENT, tokenStore } from "./lib/api";
 
 export function App() {
   const navigate = useNavigate();
-  const isAuthed = Boolean(tokenStore.get());
+  const [isAuthed, setIsAuthed] = useState(Boolean(tokenStore.get()));
+
+  useEffect(() => {
+    function syncAuthState() {
+      const hasToken = Boolean(tokenStore.get());
+      setIsAuthed(hasToken);
+      if (!hasToken) {
+        navigate("/");
+      }
+    }
+
+    window.addEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+    window.addEventListener("storage", syncAuthState);
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthState);
+      window.removeEventListener("storage", syncAuthState);
+    };
+  }, [navigate]);
 
   function logout() {
     tokenStore.clear();
