@@ -15,6 +15,7 @@
 
 ## Reliability Surfaces
 
+- Alembic applies database schema migrations before the Docker API process starts.
 - Invalid parser input returns `422`.
 - Unknown reference variants return `404`.
 - Worker failures are persisted in `analysis_jobs.error_message`.

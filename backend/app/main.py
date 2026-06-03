@@ -3,9 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, health, jobs, reports, similar, variants
 from app.config.settings import get_settings
-from app.db.database import init_db
-from app.services.reference_data import seed_reference_data
 from app.db.database import SessionLocal
+from app.services.reference_data import seed_reference_data
 
 
 def create_app() -> FastAPI:
@@ -27,7 +26,6 @@ def create_app() -> FastAPI:
 
     @app.on_event("startup")
     def startup() -> None:
-        init_db()
         db = SessionLocal()
         try:
             seed_reference_data(db)

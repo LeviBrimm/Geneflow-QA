@@ -39,6 +39,9 @@ services:
         condition: service_started
     volumes:
       - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+      - ./backend/alembic.ini:/app/alembic.ini
+      - ./backend/scripts:/app/scripts
 
   worker:
     build:
