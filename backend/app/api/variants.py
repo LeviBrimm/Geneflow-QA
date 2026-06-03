@@ -2,11 +2,11 @@ import uuid
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from app.api.deps import get_current_user
+from app.api.schemas import AnalyzeRequest, AnalyzeResponse, QuerySummaryResponse, VariantResultResponse
 from app.db.database import get_db
 from app.jobs.queue import enqueue_analysis_job
 from app.models.user import User
@@ -16,16 +16,6 @@ from app.services.reference_data import lookup_variant
 from app.services.similarity import similar_variants
 
 router = APIRouter(prefix="/api/variants", tags=["variants"])
-
-
-class AnalyzeRequest(BaseModel):
-    raw_input: str
-
-
-class AnalyzeResponse(BaseModel):
-    query_id: int
-    job_id: str
-    status: str
 
 
 @router.post(
@@ -69,7 +59,11 @@ def analyze_variant(
     return AnalyzeResponse(query_id=query.id, job_id=job.id, status=job.status)
 
 
-@router.get("/history", responses={401: {"description": "Missing or invalid bearer token."}})
+@router.get(
+    "/history",
+    response_model=list[QuerySummaryResponse],
+    responses={401: {"description": "Missing or invalid bearer token."}},
+)
 def history(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -84,6 +78,7 @@ def history(
 
 @router.get(
     "/{query_id}",
+    response_model=VariantResultResponse,
     responses={
         401: {"description": "Missing or invalid bearer token."},
         404: {"description": "Query not found."},
