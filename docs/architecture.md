@@ -16,6 +16,8 @@
 ## Reliability Surfaces
 
 - Alembic applies database schema migrations before the Docker API process starts.
+- Every API response includes `X-Request-ID`; the API preserves caller-provided IDs for traceability.
+- API access logs and worker job logs use structured fields for request IDs, job IDs, status, and duration.
 - Invalid parser input returns `422`.
 - Unknown reference variants return `404`.
 - Worker failures are persisted in `analysis_jobs.error_message`.

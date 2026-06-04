@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime
 
 from app.config.settings import get_settings
@@ -6,13 +7,20 @@ from app.models.variant import AnalysisJob, Explanation, VariantQuery
 from app.services.ai_explainer import generate_explanation
 from app.services.similarity import similar_variants
 
+logger = logging.getLogger("app.jobs.analysis")
+
 
 def run_analysis_job(job_id: str) -> None:
     db = SessionLocal()
     try:
         job = db.get(AnalysisJob, job_id)
         if not job:
+            logger.warning("analysis_job_missing", extra={"job_id": job_id})
             return
+        logger.info(
+            "analysis_job_started",
+            extra={"job_id": job.id, "query_id": job.query_id, "status": "processing"},
+        )
         job.status = "processing"
         job.started_at = datetime.utcnow()
         job.query.status = "processing"
@@ -36,6 +44,10 @@ def run_analysis_job(job_id: str) -> None:
         query.status = "completed"
         job.completed_at = datetime.utcnow()
         db.commit()
+        logger.info(
+            "analysis_job_completed",
+            extra={"job_id": job.id, "query_id": query.id, "status": "completed"},
+        )
     except Exception as exc:  # noqa: BLE001 - background job must persist failure reason.
         db.rollback()
         job = db.get(AnalysisJob, job_id)
@@ -45,5 +57,9 @@ def run_analysis_job(job_id: str) -> None:
             job.completed_at = datetime.utcnow()
             job.query.status = "failed"
             db.commit()
+            logger.exception(
+                "analysis_job_failed",
+                extra={"job_id": job.id, "query_id": job.query_id, "status": "failed"},
+            )
     finally:
         db.close()
