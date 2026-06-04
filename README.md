@@ -12,6 +12,7 @@ This is an educational project. It uses public/sample-safe data only, does not u
 - Alembic migrations for repeatable schema setup in Docker and local environments.
 - Deterministic mock explanation service by default, so the app can run and test without an external AI key.
 - Seeded reference examples for `BRCA1`, `TP53`, and `CFTR`.
+- Request ID headers and structured logs for API and worker traceability.
 - Automated backend tests and Playwright E2E tests.
 - Docker Compose setup with PostgreSQL, Redis, backend, worker, and frontend.
 

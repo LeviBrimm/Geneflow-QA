@@ -4,12 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, health, jobs, reports, similar, variants
 from app.config.settings import get_settings
 from app.db.database import SessionLocal
+from app.observability.logging import configure_logging
+from app.observability.middleware import RequestIDMiddleware
 from app.services.reference_data import seed_reference_data
 
 
 def create_app() -> FastAPI:
     settings = get_settings()
+    configure_logging()
     app = FastAPI(title=settings.app_name)
+    app.add_middleware(RequestIDMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
