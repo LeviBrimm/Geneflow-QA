@@ -7,6 +7,7 @@ This is an educational project. It uses public/sample-safe data only, does not u
 ## Features
 
 - FastAPI API for auth, variant analysis, job status, history, similar variants, reports, and health checks.
+- Service-layer orchestration for variant submission, analysis jobs, result assembly, and failure persistence.
 - React + TypeScript frontend with registration, variant submission, polling, results, history, and report access.
 - PostgreSQL data model for users, genes, variants, submitted queries, jobs, explanations, and embeddings.
 - Alembic migrations for repeatable schema setup in Docker and local environments.
@@ -21,10 +22,11 @@ This is an educational project. It uses public/sample-safe data only, does not u
 ```text
 React/Vite UI
   -> FastAPI REST API
-    -> PostgreSQL reference data and query history
-    -> Redis/RQ analysis queue
+    -> analysis service layer
+      -> PostgreSQL reference data and query history
+      -> Redis/RQ analysis queue
       -> Worker process
-        -> parser -> reference lookup -> AI explanation -> similarity -> report
+        -> analysis service layer -> AI explanation -> similarity -> report
 ```
 
 The API process creates query/job records and enqueues analysis work. A separate worker process listens on Redis, runs the analysis job, and updates the database with completed or failed status.

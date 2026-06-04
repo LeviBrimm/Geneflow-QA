@@ -8,6 +8,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 
 - Unit tests cover deterministic business logic: parser validation, AI prompt guardrails, and similarity math.
 - Contract tests inspect FastAPI's generated OpenAPI schema for required endpoints, response codes, auth parameters, and typed request/response models.
+- Service tests exercise analysis orchestration without HTTP: query/job creation, enqueue boundaries, rejected submissions, and dependency failures.
 - Integration tests exercise FastAPI routes with an in-memory database: auth, protected routes, variant submission, job polling, history, reports, invalid input, missing records, and persisted job failures.
 - Migration tests apply Alembic revisions against a clean database and verify the expected schema is created.
 - E2E tests use Playwright with mocked API responses so UI workflows can run consistently in CI without external services.
@@ -27,6 +28,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 
 - Parser accepts supported examples, normalizes whitespace and delta symbols, and rejects malformed or unsupported notation.
 - Auth covers registration, duplicate registration, login failure, missing token, and invalid token.
+- Analysis service tests verify valid submissions create query/job rows and enqueue once, invalid or unknown variants create no query rows, and AI dependency failures can be persisted.
 - API contract tests cover required paths, HTTP methods, documented response codes, auth parameters, and typed schemas for analysis, history, result, job, similar-variant, and health responses.
 - API flow covers analysis creation, job lookup, result retrieval, history, report generation, invalid variant, unknown variant, and missing resources.
 - Migration coverage verifies `alembic upgrade head` creates the initial schema and records the expected revision.
