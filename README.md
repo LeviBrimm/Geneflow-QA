@@ -65,6 +65,10 @@ Example variants:
 
 Testing is a core part of the project, not an afterthought. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
 
+## Quality Gates
+
+CI runs backend linting, backend formatting checks, backend tests with a 90% coverage threshold, Docker Compose config validation, frontend build, and Playwright E2E tests on every push and pull request.
+
 ## Verification
 
 Backend tests use SQLite in memory for speed while the application default remains PostgreSQL.

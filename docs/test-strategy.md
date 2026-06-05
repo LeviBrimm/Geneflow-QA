@@ -14,7 +14,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 - E2E tests use Playwright with mocked API responses so UI workflows can run consistently in CI without external services.
 - Load tests use k6 against the Docker stack to exercise health, auth, analysis submission, and job polling under light concurrent traffic.
 - Docker smoke tests verify the live backend, Redis/RQ worker, database persistence, and result retrieval path.
-- CI runs backend tests, frontend build, and Playwright E2E checks on every push and pull request.
+- CI runs backend linting, backend formatting checks, backend tests with a 90% coverage threshold, Docker Compose config validation, frontend build, and Playwright E2E checks on every push and pull request.
 
 ## High-Risk Areas
 
