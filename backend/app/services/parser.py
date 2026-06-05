@@ -28,7 +28,7 @@ def parse_variant(raw_input: str) -> ParsedVariant:
     if not cleaned:
         raise VariantParseError("Variant input is required.")
 
-    match = re.fullmatch(fr"{GENE_PATTERN}\s+(?:{CDNA_PATTERN}|{PROTEIN_PATTERN}|{DELTA_PATTERN})", cleaned)
+    match = re.fullmatch(rf"{GENE_PATTERN}\s+(?:{CDNA_PATTERN}|{PROTEIN_PATTERN}|{DELTA_PATTERN})", cleaned)
     if not match:
         raise VariantParseError("Unable to parse variant. Use examples like BRCA1 c.5266dupC or TP53 p.R175H.")
 

@@ -76,9 +76,7 @@ def submit_variant_analysis(
 
 def list_query_history(db: Session, user: User) -> list[dict]:
     queries = db.scalars(
-        select(VariantQuery)
-        .where(VariantQuery.user_id == user.id)
-        .order_by(VariantQuery.created_at.desc())
+        select(VariantQuery).where(VariantQuery.user_id == user.id).order_by(VariantQuery.created_at.desc())
     ).all()
     return [_query_summary(query) for query in queries]
 

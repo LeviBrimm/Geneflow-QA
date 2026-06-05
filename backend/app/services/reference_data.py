@@ -81,16 +81,15 @@ def seed_reference_data(db: Session) -> None:
             variant = Variant(gene_id=gene.id, **variant_data)
             db.add(variant)
             db.flush()
-            db.add(VariantEmbedding(variant_id=variant.id, embedding=vector_to_storage(_seed_embedding(variant.summary))))
+            db.add(
+                VariantEmbedding(variant_id=variant.id, embedding=vector_to_storage(_seed_embedding(variant.summary)))
+            )
     db.commit()
 
 
 def lookup_variant(db: Session, parsed: ParsedVariant) -> Variant | None:
     return db.scalar(
-        select(Variant)
-        .join(Gene)
-        .where(Gene.symbol == parsed.gene)
-        .where(Variant.hgvs == parsed.notation)
+        select(Variant).join(Gene).where(Gene.symbol == parsed.gene).where(Variant.hgvs == parsed.notation)
     )
 
 

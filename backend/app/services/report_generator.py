@@ -9,8 +9,7 @@ def generate_html_report(query: VariantQuery, similar: list[dict]) -> str:
     gene = variant.gene if variant else None
     explanation = query.explanation
     similar_items = "".join(
-        f"<li>{escape(item['gene'])} {escape(item['hgvs'])} - score {item['similarity_score']}</li>"
-        for item in similar
+        f"<li>{escape(item['gene'])} {escape(item['hgvs'])} - score {item['similarity_score']}</li>" for item in similar
     )
     return f"""<!doctype html>
 <html>

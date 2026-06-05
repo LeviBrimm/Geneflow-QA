@@ -19,7 +19,9 @@ router = APIRouter(prefix="/api/similar", tags=["similar"])
         404: {"description": "Variant not found."},
     },
 )
-def similar(variant_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)) -> list[SimilarVariantResponse]:
+def similar(
+    variant_id: int, db: Session = Depends(get_db), _: User = Depends(get_current_user)
+) -> list[SimilarVariantResponse]:
     if not db.get(Variant, variant_id):
         raise HTTPException(status_code=404, detail="Variant not found.")
     return [SimilarVariantResponse(**item) for item in similar_variants(db, variant_id)]

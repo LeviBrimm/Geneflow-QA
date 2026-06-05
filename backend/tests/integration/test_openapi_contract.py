@@ -81,7 +81,9 @@ def test_openapi_documents_json_response_models(client):
     }
 
     for (path, method, status_code), schema_ref in expected_refs.items():
-        response_schema = schema["paths"][path][method]["responses"][status_code]["content"]["application/json"]["schema"]
+        response_schema = schema["paths"][path][method]["responses"][status_code]["content"]["application/json"][
+            "schema"
+        ]
         assert response_schema["$ref"].endswith(schema_ref)
 
 
@@ -94,6 +96,8 @@ def test_openapi_documents_list_response_models(client):
     }
 
     for (path, method, status_code), schema_ref in expected_item_refs.items():
-        response_schema = schema["paths"][path][method]["responses"][status_code]["content"]["application/json"]["schema"]
+        response_schema = schema["paths"][path][method]["responses"][status_code]["content"]["application/json"][
+            "schema"
+        ]
         assert response_schema["type"] == "array"
         assert response_schema["items"]["$ref"].endswith(schema_ref)
