@@ -65,6 +65,10 @@ Example variants:
 
 Testing is a core part of the project, not an afterthought. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
 
+## Deployment
+
+The first deployment target is Render with a Docker backend, Docker worker, managed PostgreSQL, Render Key Value/Redis, and a static frontend. See [docs/deployment.md](docs/deployment.md) for environment variables, first-deploy steps, and post-deploy checks.
+
 ## Quality Gates
 
 CI runs backend linting, backend formatting checks, backend tests with a 90% coverage threshold, Docker Compose config validation, frontend build, and Playwright E2E tests on every push and pull request.
@@ -100,6 +104,12 @@ Docker worker smoke test:
 
 ```bash
 bash scripts/docker-worker-smoke.sh
+```
+
+Deployed backend smoke test:
+
+```bash
+BASE_URL=https://your-backend.example.com bash scripts/deployed-smoke.sh
 ```
 
 Database migrations:
