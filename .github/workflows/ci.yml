@@ -32,6 +32,15 @@ jobs:
       - name: Validate Docker Compose config
         run: docker compose config
 
+  deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Render blueprint YAML
+        run: ruby -e "require 'yaml'; YAML.load_file('render.yaml')"
+      - name: Validate smoke test shell scripts
+        run: bash -n scripts/docker-worker-smoke.sh scripts/deployed-smoke.sh
+
   frontend:
     runs-on: ubuntu-latest
     steps:
