@@ -1,10 +1,15 @@
-import { useEffect, useState } from "react";
+import { CheckCircle2, Clock3, FileSearch, Microscope, ShieldCheck } from "lucide-react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { AuthPanel } from "../components/AuthPanel";
 import { VariantForm } from "../components/VariantForm";
 import { AUTH_CHANGED_EVENT, analyze, getJob, tokenStore } from "../lib/api";
 import type { JobStatus } from "../types";
+
+const visibleAnalysisSequence: JobStatus[] = ["queued", "processing", "completed"];
+const visibleStepDelayMs = 550;
+const pollIntervalMs = 900;
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -31,12 +36,12 @@ export function HomePage() {
     setStatus("queued");
     try {
       const response = await analyze(rawInput);
-      setStatus(response.status);
+      setStatus("queued");
       const timer = window.setInterval(async () => {
         const job = await getJob(response.job_id);
-        setStatus(job.status);
         if (job.status === "completed") {
           window.clearInterval(timer);
+          await playVisibleAnalysisSequence(setStatus);
           navigate(`/results/${response.query_id}`);
         }
         if (job.status === "failed") {
@@ -44,7 +49,10 @@ export function HomePage() {
           setStatus("idle");
           setMessage(job.error_message ?? "Analysis job failed.");
         }
-      }, 900);
+        if (job.status === "processing") {
+          setStatus("processing");
+        }
+      }, pollIntervalMs);
     } catch (error) {
       setStatus("idle");
       setMessage(error instanceof Error ? error.message : "Unable to submit analysis.");
@@ -56,21 +64,52 @@ export function HomePage() {
   }
 
   return (
-    <div className="workspace-grid">
-      <section className="panel primary-panel">
-        <div className="hero-copy">
-          <p className="eyebrow">Variant interpretation workflow</p>
-          <h1>Analyze public genomic variant references with an auditable QA flow.</h1>
-          <p className="lede">
-            Submit a known variant, watch the queued analysis complete, and review reference context, guarded
-            explanations, similar variants, history, and report output.
+    <div className="workbench-grid">
+      <aside className="bench-rail">
+        <div className="rail-block">
+          <p className="eyebrow">Workbench</p>
+          <h2>Variant intake</h2>
+          <p className="rail-copy">
+            Submit one public reference variant at a time. GeneFlow tracks the request from validation through report
+            output.
           </p>
         </div>
+        <div className="rail-specimen">
+          <span className="specimen-label">Current fixture</span>
+          <strong>BRCA1 c.5266dupC</strong>
+          <span>seeded public record</span>
+        </div>
+        <div className="rail-checks" aria-label="QA checks">
+          <span><ShieldCheck size={15} /> Auth boundary</span>
+          <span><FileSearch size={15} /> Contracted API</span>
+          <span><Clock3 size={15} /> Async job state</span>
+        </div>
+      </aside>
+
+      <section className="analysis-console">
+        <div className="console-header">
+          <div>
+            <p className="eyebrow">Genomic QA workbench</p>
+            <h1>Run a traceable variant analysis from intake to report.</h1>
+          </div>
+          <div className="console-mark" aria-hidden="true">
+            <Microscope size={30} />
+          </div>
+        </div>
+
+        <p className="lede">
+          GeneFlow validates the submitted notation, matches public reference data, queues analysis work, stores
+          history, and produces an educational report with guarded explanations.
+        </p>
+
         {isAuthed ? (
           <VariantForm onSubmit={handleAnalyze} disabled={status !== "idle"} />
         ) : (
           <AuthPanel onAuthed={handleAuthed} />
         )}
+
+        <PipelineProgress status={status} />
+
         {status !== "idle" && (
           <div className="status-strip" role="status">
             <span className="pulse" />
@@ -80,7 +119,7 @@ export function HomePage() {
         {message && <p className="error">{message}</p>}
       </section>
 
-      <aside className="panel compact-panel process-panel">
+      <aside className="evidence-rail">
         <div>
           <p className="eyebrow">System path</p>
           <h2>Queue-backed analysis</h2>
@@ -99,6 +138,43 @@ export function HomePage() {
           <span>Playwright</span>
         </div>
       </aside>
+    </div>
+  );
+}
+
+async function playVisibleAnalysisSequence(setStatus: Dispatch<SetStateAction<JobStatus | "idle">>) {
+  for (const nextStatus of visibleAnalysisSequence.slice(1)) {
+    setStatus(nextStatus);
+    await wait(visibleStepDelayMs);
+  }
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+}
+
+function PipelineProgress({ status }: { status: JobStatus | "idle" }) {
+  const steps = [
+    { key: "queued", label: "Queued", detail: "Job record created" },
+    { key: "processing", label: "Processing", detail: "Worker evaluates evidence" },
+    { key: "completed", label: "Completed", detail: "Result ready" },
+  ] as const;
+  const activeIndex = status === "idle" ? -1 : steps.findIndex((step) => step.key === status);
+
+  return (
+    <div className="progress-track" aria-label="Analysis pipeline">
+      {steps.map((step, index) => {
+        const isActive = index <= activeIndex || status === "completed";
+        return (
+          <div className={`progress-step ${isActive ? "active" : ""}`} key={step.key}>
+            <span>{isActive ? <CheckCircle2 size={16} /> : index + 1}</span>
+            <div>
+              <strong>{step.label}</strong>
+              <small>{step.detail}</small>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

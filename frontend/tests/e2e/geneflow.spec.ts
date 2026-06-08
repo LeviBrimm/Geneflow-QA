@@ -76,8 +76,9 @@ test("user can register, submit a variant, view results, and open history", asyn
   await expect(page.getByLabel(/variant input/i)).toBeVisible();
   await page.getByRole("button", { name: /start analysis/i }).click();
   await expect(page.getByRole("status")).toContainText(/Analysis status/i);
+  await expect(page.getByRole("status")).toContainText(/processing/i);
   await expect(page.getByRole("heading", { name: "BRCA1 c.5266dupC" })).toBeVisible();
-  await expect(page.getByText("Pathogenic")).toBeVisible();
+  await expect(page.locator(".summary-grid").getByText("Pathogenic")).toBeVisible();
   await expect(page.getByText("General guarded explanation")).toBeVisible();
   await expect(page.getByText("TP53 p.R175H")).toBeVisible();
 
