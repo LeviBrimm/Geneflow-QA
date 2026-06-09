@@ -3,7 +3,7 @@ from sqlalchemy import func, select
 
 from app.db.database import SessionLocal
 from app.models.user import User
-from app.models.variant import AnalysisJob, VariantQuery
+from app.models.variant import AnalysisJob, ExternalReferenceSnapshot, VariantQuery
 from app.services import analysis_service
 from app.services.analysis_service import (
     InvalidVariantInputError,
@@ -13,6 +13,7 @@ from app.services.analysis_service import (
     start_analysis_job,
     submit_variant_analysis,
 )
+from app.services.external_reference import ExternalReferenceResult
 
 
 def test_submit_variant_analysis_creates_query_job_and_enqueues(client):
@@ -94,6 +95,79 @@ def test_ai_dependency_failure_can_be_persisted(client, monkeypatch):
         assert failed_job.error_message == "AI service timed out"
         assert query is not None
         assert query.status == "failed"
+    finally:
+        db.close()
+
+
+def test_completed_analysis_persists_external_reference_snapshot(client, monkeypatch):
+    user = _registered_user(client, "service-external-success@example.com")
+
+    db = SessionLocal()
+    try:
+        submission = submit_variant_analysis(db, user, "BRCA1 c.5266dupC", lambda _: None)
+        job = start_analysis_job(db, submission.job_id)
+        assert job is not None
+
+        monkeypatch.setattr(
+            analysis_service,
+            "fetch_external_reference",
+            lambda *_args: ExternalReferenceResult(
+                source="ensembl",
+                lookup_status="success",
+                external_id="ENSG00000012048",
+                external_url="https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000012048",
+                gene_biotype="protein_coding",
+                location="17:43044295-43170245",
+                summary="BRCA1 DNA repair associated",
+            ),
+        )
+
+        complete_analysis_job(db, job, ai_mode="mock")
+
+        snapshot = db.scalar(
+            select(ExternalReferenceSnapshot).where(ExternalReferenceSnapshot.query_id == submission.query_id)
+        )
+        query = db.get(VariantQuery, submission.query_id)
+
+        assert snapshot is not None
+        assert snapshot.lookup_status == "success"
+        assert snapshot.external_id == "ENSG00000012048"
+        assert query is not None
+        assert query.status == "completed"
+    finally:
+        db.close()
+
+
+def test_external_reference_failure_is_saved_without_failing_analysis(client, monkeypatch):
+    user = _registered_user(client, "service-external-failure@example.com")
+
+    db = SessionLocal()
+    try:
+        submission = submit_variant_analysis(db, user, "CFTR ΔF508", lambda _: None)
+        job = start_analysis_job(db, submission.job_id)
+        assert job is not None
+
+        monkeypatch.setattr(
+            analysis_service,
+            "fetch_external_reference",
+            lambda *_args: ExternalReferenceResult(
+                source="ensembl",
+                lookup_status="failed",
+                error_message="lookup timed out",
+            ),
+        )
+
+        complete_analysis_job(db, job, ai_mode="mock")
+
+        db.refresh(job)
+        snapshot = db.scalar(
+            select(ExternalReferenceSnapshot).where(ExternalReferenceSnapshot.query_id == submission.query_id)
+        )
+
+        assert job.status == "completed"
+        assert snapshot is not None
+        assert snapshot.lookup_status == "failed"
+        assert snapshot.error_message == "lookup timed out"
     finally:
         db.close()
 

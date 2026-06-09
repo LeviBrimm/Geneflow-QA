@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     analysis_queue_name: str = "analysis"
     analysis_queue_mode: str = "rq"
+    external_reference_mode: str = "mock"
+    external_reference_base_url: str = "https://rest.ensembl.org"
+    external_reference_timeout_seconds: float = 3.0
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

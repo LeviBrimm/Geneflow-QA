@@ -42,6 +42,16 @@ test.beforeEach(async ({ page }) => {
           technical: "Technical guarded explanation. Educational only. Not medical advice.",
           model_used: "mock-explainer-v1",
         },
+        external_reference: {
+          source: "ensembl-mock",
+          lookup_status: "success",
+          external_id: "ENSG00000012048",
+          external_url: "https://www.ensembl.org/Homo_sapiens/Gene/Summary?g=ENSG00000012048",
+          gene_biotype: "protein_coding",
+          location: "BRCA1:5266",
+          summary: "Mock Ensembl enrichment for BRCA1.",
+          error_message: null,
+        },
         similar_variants: [
           {
             variant_id: 2,
@@ -76,8 +86,11 @@ test("user can register, submit a variant, view results, and open history", asyn
   await expect(page.getByLabel(/variant input/i)).toBeVisible();
   await page.getByRole("button", { name: /start analysis/i }).click();
   await expect(page.getByRole("status")).toContainText(/Analysis status/i);
+  await expect(page.getByRole("status")).toContainText(/processing/i);
   await expect(page.getByRole("heading", { name: "BRCA1 c.5266dupC" })).toBeVisible();
-  await expect(page.getByText("Pathogenic")).toBeVisible();
+  await expect(page.locator(".summary-grid").getByText("Pathogenic")).toBeVisible();
+  await expect(page.getByText("External Reference")).toBeVisible();
+  await expect(page.getByText("ENSG00000012048")).toBeVisible();
   await expect(page.getByText("General guarded explanation")).toBeVisible();
   await expect(page.getByText("TP53 p.R175H")).toBeVisible();
 

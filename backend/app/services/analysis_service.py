@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from app.models.user import User
 from app.models.variant import AnalysisJob, Explanation, VariantQuery
 from app.services.ai_explainer import generate_explanation
+from app.services.external_reference import fetch_external_reference, save_external_reference_snapshot
 from app.services.parser import VariantParseError, parse_variant
 from app.services.reference_data import lookup_variant
 from app.services.similarity import similar_variants
@@ -87,6 +88,7 @@ def get_query_result(db: Session, user: User, query_id: int) -> dict:
         .options(
             selectinload(VariantQuery.variant),
             selectinload(VariantQuery.explanation),
+            selectinload(VariantQuery.external_reference),
             selectinload(VariantQuery.job),
         )
         .where(VariantQuery.id == query_id)
@@ -121,6 +123,7 @@ def get_query_result(db: Session, user: User, query_id: int) -> dict:
             "technical": query.explanation.technical_explanation if query.explanation else None,
             "model_used": query.explanation.model_used if query.explanation else None,
         },
+        "external_reference": _external_reference(query),
         "similar_variants": similar_variants(db, variant.id) if variant else [],
     }
 
@@ -141,6 +144,9 @@ def complete_analysis_job(db: Session, job: AnalysisJob, ai_mode: str) -> None:
     query = db.get(VariantQuery, job.query_id)
     if not query or not query.variant:
         raise RuntimeError("Variant reference data was not found.")
+
+    external_reference = fetch_external_reference(query.variant.gene, query.variant)
+    db.add(save_external_reference_snapshot(query, external_reference))
 
     result = generate_explanation(query.variant.gene, query.variant, ai_mode)
     db.add(
@@ -179,4 +185,29 @@ def _query_summary(query: VariantQuery) -> dict:
         "status": query.status,
         "created_at": query.created_at.isoformat() if isinstance(query.created_at, datetime) else query.created_at,
         "job_id": query.job.id if query.job else None,
+    }
+
+
+def _external_reference(query: VariantQuery) -> dict:
+    snapshot = query.external_reference
+    if not snapshot:
+        return {
+            "source": None,
+            "lookup_status": "pending",
+            "external_id": None,
+            "external_url": None,
+            "gene_biotype": None,
+            "location": None,
+            "summary": None,
+            "error_message": None,
+        }
+    return {
+        "source": snapshot.source,
+        "lookup_status": snapshot.lookup_status,
+        "external_id": snapshot.external_id,
+        "external_url": snapshot.external_url,
+        "gene_biotype": snapshot.gene_biotype,
+        "location": snapshot.location,
+        "summary": snapshot.summary,
+        "error_message": snapshot.error_message,
     }

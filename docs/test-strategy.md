@@ -6,7 +6,7 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 
 ## Test Layers
 
-- Unit tests cover deterministic business logic: parser validation, AI prompt guardrails, and similarity math.
+- Unit tests cover deterministic business logic: parser validation, external reference client mapping and fallback, AI prompt guardrails, and similarity math.
 - Contract tests inspect FastAPI's generated OpenAPI schema for required endpoints, response codes, auth parameters, and typed request/response models.
 - Service tests exercise analysis orchestration without HTTP: query/job creation, enqueue boundaries, rejected submissions, and dependency failures.
 - Integration tests exercise FastAPI routes with an in-memory database: auth, protected routes, variant submission, job polling, history, reports, invalid input, missing records, and persisted job failures.
@@ -24,12 +24,14 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 - Async jobs: queued, processing, completed, and failed states must be visible and persisted.
 - AI explanations: generated text must include educational-only guardrails and avoid medical advice.
 - Reports: report output must be tied to the requesting user and contain the same stored result data.
+- External APIs: slow or unavailable public data sources should be recorded as enrichment failures without breaking completed analysis jobs.
 
 ## Current Automated Coverage
 
 - Parser accepts supported examples, normalizes whitespace and delta symbols, and rejects malformed or unsupported notation.
 - Auth covers registration, duplicate registration, login failure, missing token, and invalid token.
 - Analysis service tests verify valid submissions create query/job rows and enqueue once, invalid or unknown variants create no query rows, and AI dependency failures can be persisted.
+- External reference tests verify Ensembl-style payload mapping, deterministic mock mode, live lookup failure capture, and persisted enrichment snapshots.
 - API contract tests cover required paths, HTTP methods, documented response codes, auth parameters, and typed schemas for analysis, history, result, job, similar-variant, and health responses.
 - API flow covers analysis creation, job lookup, result retrieval, history, report generation, invalid variant, unknown variant, and missing resources.
 - Migration coverage verifies `alembic upgrade head` creates the initial schema and records the expected revision.
