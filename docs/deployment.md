@@ -23,6 +23,9 @@ Backend API and worker:
 | `AUTH_SECRET` | Generated secret | Must be the same for API and worker. |
 | `AI_MODE` | `mock` | Keep `mock` for the first deployment. |
 | `OPENAI_API_KEY` | blank for mock mode | Required only when real AI mode is enabled. |
+| `EXTERNAL_REFERENCE_MODE` | `mock` | Use `mock` for deterministic deploys, or `live` to call Ensembl REST. |
+| `EXTERNAL_REFERENCE_BASE_URL` | `https://rest.ensembl.org` | Base URL for live external reference lookup. |
+| `EXTERNAL_REFERENCE_TIMEOUT_SECONDS` | `3` | Timeout for external reference requests. |
 | `CORS_ORIGINS` | `https://geneflow-frontend.onrender.com` | Set this after the frontend URL exists. |
 | `ANALYSIS_QUEUE_NAME` | `analysis` | Must match API and worker. |
 | `ANALYSIS_QUEUE_MODE` | `rq` | Use Redis/RQ in deployed environments. |
@@ -59,6 +62,7 @@ BASE_URL=https://geneflow-api.onrender.com bash scripts/deployed-smoke.sh
 - Open the frontend URL and register a test account.
 - Submit `BRCA1 c.5266dupC`.
 - Confirm the job reaches `completed`.
+- Confirm the result includes an external reference section. In mock mode it should show `ensembl-mock`.
 - Open history and the HTML report.
 - Check backend and worker logs for structured request/job fields.
 
@@ -73,3 +77,4 @@ BASE_URL=https://geneflow-api.onrender.com bash scripts/deployed-smoke.sh
 - Add a GitHub Actions job that runs `scripts/deployed-smoke.sh` against the hosted backend after deployment.
 - Add a custom domain.
 - Move `AI_MODE` from `mock` to a real provider after rate limits, timeouts, and cost controls are documented.
+- Move `EXTERNAL_REFERENCE_MODE` from `mock` to `live` after deploy logs and timeout behavior are verified.

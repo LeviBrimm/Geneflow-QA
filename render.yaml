@@ -22,6 +22,12 @@ services:
         value: mock
       - key: OPENAI_API_KEY
         sync: false
+      - key: EXTERNAL_REFERENCE_MODE
+        value: mock
+      - key: EXTERNAL_REFERENCE_BASE_URL
+        value: https://rest.ensembl.org
+      - key: EXTERNAL_REFERENCE_TIMEOUT_SECONDS
+        value: "3"
       - key: CORS_ORIGINS
         sync: false
       - key: ANALYSIS_QUEUE_NAME
@@ -55,6 +61,12 @@ services:
         value: mock
       - key: OPENAI_API_KEY
         sync: false
+      - key: EXTERNAL_REFERENCE_MODE
+        value: mock
+      - key: EXTERNAL_REFERENCE_BASE_URL
+        value: https://rest.ensembl.org
+      - key: EXTERNAL_REFERENCE_TIMEOUT_SECONDS
+        value: "3"
       - key: ANALYSIS_QUEUE_NAME
         value: analysis
       - key: ANALYSIS_QUEUE_MODE

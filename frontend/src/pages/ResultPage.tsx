@@ -1,4 +1,4 @@
-import { ClipboardList, Download, RefreshCcw, ShieldAlert } from "lucide-react";
+import { ClipboardList, DatabaseZap, Download, ExternalLink, RefreshCcw, ShieldAlert } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -114,6 +114,41 @@ export function ResultPage() {
           <p className="evidence-summary">{result.reference.summary}</p>
         </aside>
 
+        <article className="panel evidence-card span-12 external-reference-card">
+          <div className="section-header tight">
+            <div>
+              <p className="eyebrow">Public data enrichment</p>
+              <h2>External Reference</h2>
+            </div>
+            <div className="external-source">
+              <DatabaseZap size={18} />
+              <span>{result.external_reference.source ?? "pending"}</span>
+            </div>
+          </div>
+          <div className="summary-grid">
+            <Metric label="Lookup" value={result.external_reference.lookup_status} />
+            <Metric label="External ID" value={result.external_reference.external_id} />
+            <Metric label="Biotype" value={result.external_reference.gene_biotype} />
+            <Metric label="Location" value={result.external_reference.location} />
+          </div>
+          <p className="evidence-summary">
+            {result.external_reference.error_message ??
+              result.external_reference.summary ??
+              "External reference enrichment is still pending."}
+          </p>
+          {result.external_reference.external_url && (
+            <a
+              className="secondary-button inline-link"
+              href={result.external_reference.external_url}
+              target="_blank"
+              rel="noreferrer"
+            >
+              <ExternalLink size={16} />
+              <span>Open Ensembl record</span>
+            </a>
+          )}
+        </article>
+
         <article className="panel explanation-panel span-12">
           <div className="section-header tight">
             <div>
@@ -162,11 +197,11 @@ export function ResultPage() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value }: { label: string; value: string | number | null }) {
   return (
     <div className="metric">
       <span>{label}</span>
-      <strong>{value}</strong>
+      <strong>{value ?? "Unavailable"}</strong>
     </div>
   );
 }

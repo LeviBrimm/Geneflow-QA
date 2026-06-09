@@ -782,6 +782,30 @@ a.table-row:hover,
   padding: 14px;
 }
 
+.external-reference-card {
+  background:
+    linear-gradient(135deg, rgb(255 253 248 / 96%), rgb(246 238 225 / 94%)),
+    #fffdf8;
+}
+
+.external-source {
+  align-items: center;
+  background: #171411;
+  border-radius: 999px;
+  color: #fffdf8;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  gap: 7px;
+  padding: 7px 11px;
+  text-transform: uppercase;
+}
+
+.inline-link {
+  margin-top: 16px;
+  width: fit-content;
+}
+
 .disclaimer-strip {
   align-items: center;
   background: #f7efe4;

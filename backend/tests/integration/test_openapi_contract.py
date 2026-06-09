@@ -87,6 +87,25 @@ def test_openapi_documents_json_response_models(client):
         assert response_schema["$ref"].endswith(schema_ref)
 
 
+def test_result_contract_includes_external_reference_schema(client):
+    schema = client.get("/openapi.json").json()
+    result_schema = schema["components"]["schemas"]["VariantResultResponse"]
+
+    assert result_schema["properties"]["external_reference"]["$ref"].endswith("/ExternalReferenceResponse")
+
+    external_schema = schema["components"]["schemas"]["ExternalReferenceResponse"]
+    assert {
+        "source",
+        "lookup_status",
+        "external_id",
+        "external_url",
+        "gene_biotype",
+        "location",
+        "summary",
+        "error_message",
+    }.issubset(set(external_schema["properties"]))
+
+
 def test_openapi_documents_list_response_models(client):
     schema = client.get("/openapi.json").json()
 

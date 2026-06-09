@@ -44,6 +44,17 @@ class ExplanationResponse(BaseModel):
     model_used: str | None
 
 
+class ExternalReferenceResponse(BaseModel):
+    source: str | None
+    lookup_status: str
+    external_id: str | None
+    external_url: str | None
+    gene_biotype: str | None
+    location: str | None
+    summary: str | None
+    error_message: str | None
+
+
 class SimilarVariantResponse(BaseModel):
     variant_id: int
     gene: str
@@ -57,6 +68,7 @@ class VariantResultResponse(QuerySummaryResponse):
     parsed: ParsedVariantResponse
     reference: ReferenceDataResponse
     explanations: ExplanationResponse
+    external_reference: ExternalReferenceResponse
     similar_variants: list[SimilarVariantResponse]
 
 

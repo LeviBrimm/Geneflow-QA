@@ -17,6 +17,8 @@ def test_auth_analyze_job_result_report_flow(client, auth_headers):
     result_payload = result.json()
     assert result_payload["parsed"]["gene"] == "BRCA1"
     assert result_payload["reference"]["significance"] == "Pathogenic"
+    assert result_payload["external_reference"]["lookup_status"] == "success"
+    assert result_payload["external_reference"]["source"] == "ensembl-mock"
 
     history = client.get("/api/variants/history", headers=auth_headers)
     assert history.status_code == 200
@@ -25,6 +27,7 @@ def test_auth_analyze_job_result_report_flow(client, auth_headers):
     report = client.get(f"/api/reports/{payload['query_id']}", headers=auth_headers)
     assert report.status_code == 200
     assert "GeneFlow Variant Report" in report.text
+    assert "External Reference" in report.text
 
 
 def test_protected_routes_require_authentication(client):

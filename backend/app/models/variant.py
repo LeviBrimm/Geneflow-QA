@@ -41,13 +41,14 @@ class VariantQuery(Base):
     variant = relationship("Variant")
     job = relationship("AnalysisJob", back_populates="query", uselist=False)
     explanation = relationship("Explanation", back_populates="query", uselist=False)
+    external_reference = relationship("ExternalReferenceSnapshot", back_populates="query", uselist=False)
 
 
 class AnalysisJob(Base):
     __tablename__ = "analysis_jobs"
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True, index=True)
-    query_id: Mapped[int] = mapped_column(ForeignKey("variant_queries.id"), nullable=False)
+    query_id: Mapped[int] = mapped_column(ForeignKey("variant_queries.id"), nullable=False, unique=True)
     status: Mapped[str] = mapped_column(String(32), default="queued", nullable=False)
     error_message: Mapped[str | None] = mapped_column(Text)
     started_at: Mapped[datetime | None] = mapped_column(DateTime)
@@ -77,3 +78,22 @@ class VariantEmbedding(Base):
     embedding: Mapped[str] = mapped_column(Text, nullable=False)
 
     variant = relationship("Variant", back_populates="embeddings")
+
+
+class ExternalReferenceSnapshot(Base):
+    __tablename__ = "external_reference_snapshots"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    query_id: Mapped[int] = mapped_column(ForeignKey("variant_queries.id"), nullable=False, unique=True)
+    source: Mapped[str] = mapped_column(String(64), nullable=False)
+    lookup_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    external_id: Mapped[str | None] = mapped_column(String(128))
+    external_url: Mapped[str | None] = mapped_column(String(512))
+    gene_biotype: Mapped[str | None] = mapped_column(String(128))
+    location: Mapped[str | None] = mapped_column(String(128))
+    summary: Mapped[str | None] = mapped_column(Text)
+    raw_payload: Mapped[str | None] = mapped_column(Text)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    query = relationship("VariantQuery", back_populates="external_reference")

@@ -47,6 +47,16 @@ export type VariantResult = {
     technical: string | null;
     model_used: string | null;
   };
+  external_reference: {
+    source: string | null;
+    lookup_status: string;
+    external_id: string | null;
+    external_url: string | null;
+    gene_biotype: string | null;
+    location: string | null;
+    summary: string | null;
+    error_message: string | null;
+  };
   similar_variants: SimilarVariant[];
 };
 

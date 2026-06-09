@@ -22,7 +22,11 @@ router = APIRouter(prefix="/api/reports", tags=["reports"])
 def report(query_id: int, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)) -> Response:
     query = db.scalar(
         select(VariantQuery)
-        .options(selectinload(VariantQuery.variant), selectinload(VariantQuery.explanation))
+        .options(
+            selectinload(VariantQuery.variant),
+            selectinload(VariantQuery.explanation),
+            selectinload(VariantQuery.external_reference),
+        )
         .where(VariantQuery.id == query_id)
         .where(VariantQuery.user_id == current_user.id)
     )
