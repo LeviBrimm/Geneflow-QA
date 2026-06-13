@@ -1,6 +1,6 @@
 # GeneFlow QA Platform
 
-GeneFlow QA Platform is a full-stack web app for exploring public genomic variant reference data. A user enters a variant, the app parses it, checks it against seeded reference records, starts an analysis job, enriches the result with external reference evidence, generates guarded explanations, shows similar variants, saves the query, and produces an HTML report.
+GeneFlow QA Platform is a full-stack web app for exploring public genomic variant reference data. A user enters a variant, the app parses it, checks it against seeded reference records, starts an analysis job, enriches the result with gene-level and variant-level evidence, generates guarded explanations, shows similar variants, saves the query, and produces an HTML report.
 
 This is an educational project. It uses public/sample-safe data only, does not use patient data, and does not provide medical advice.
 
@@ -13,6 +13,7 @@ This is an educational project. It uses public/sample-safe data only, does not u
 - Alembic migrations for repeatable schema setup in Docker and local environments.
 - Deterministic mock explanation service by default, so the app can run and test without an external AI key.
 - External reference enrichment with deterministic mock mode locally and optional live Ensembl REST lookup.
+- Variant-level evidence snapshots for normalized HGVS, transcript IDs, consequence terms, impact, and clinical significance.
 - Seeded reference examples for `BRCA1`, `TP53`, and `CFTR`.
 - Request ID headers and structured logs for API and worker traceability.
 - Automated backend tests and Playwright E2E tests.
@@ -27,7 +28,7 @@ React/Vite UI
       -> PostgreSQL reference data and query history
       -> Redis/RQ analysis queue
       -> Worker process
-        -> analysis service layer -> external reference -> AI explanation -> similarity -> report
+        -> analysis service layer -> external reference -> variant evidence -> AI explanation -> similarity -> report
 ```
 
 The API process creates query/job records and enqueues analysis work. A separate worker process listens on Redis, runs the analysis job, and updates the database with completed or failed status.

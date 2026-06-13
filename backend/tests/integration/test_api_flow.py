@@ -19,6 +19,8 @@ def test_auth_analyze_job_result_report_flow(client, auth_headers):
     assert result_payload["reference"]["significance"] == "Pathogenic"
     assert result_payload["external_reference"]["lookup_status"] == "success"
     assert result_payload["external_reference"]["source"] == "ensembl-mock"
+    assert result_payload["variant_evidence"][0]["normalized_hgvs"] == "NM_007294.4:c.5266dupC"
+    assert result_payload["variant_evidence"][0]["impact"] == "HIGH"
 
     history = client.get("/api/variants/history", headers=auth_headers)
     assert history.status_code == 200
@@ -28,6 +30,7 @@ def test_auth_analyze_job_result_report_flow(client, auth_headers):
     assert report.status_code == 200
     assert "GeneFlow Variant Report" in report.text
     assert "External Reference" in report.text
+    assert "Variant Evidence" in report.text
 
 
 def test_protected_routes_require_authentication(client):

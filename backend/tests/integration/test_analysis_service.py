@@ -3,7 +3,7 @@ from sqlalchemy import func, select
 
 from app.db.database import SessionLocal
 from app.models.user import User
-from app.models.variant import AnalysisJob, ExternalReferenceSnapshot, VariantQuery
+from app.models.variant import AnalysisJob, ExternalReferenceSnapshot, VariantEvidenceSnapshot, VariantQuery
 from app.services import analysis_service
 from app.services.analysis_service import (
     InvalidVariantInputError,
@@ -134,6 +134,30 @@ def test_completed_analysis_persists_external_reference_snapshot(client, monkeyp
         assert snapshot.external_id == "ENSG00000012048"
         assert query is not None
         assert query.status == "completed"
+    finally:
+        db.close()
+
+
+def test_completed_analysis_persists_variant_evidence_snapshot(client):
+    user = _registered_user(client, "service-variant-evidence@example.com")
+
+    db = SessionLocal()
+    try:
+        submission = submit_variant_analysis(db, user, "TP53 p.R175H", lambda _: None)
+        job = start_analysis_job(db, submission.job_id)
+        assert job is not None
+
+        complete_analysis_job(db, job, ai_mode="mock")
+
+        snapshot = db.scalar(
+            select(VariantEvidenceSnapshot).where(VariantEvidenceSnapshot.query_id == submission.query_id)
+        )
+
+        assert snapshot is not None
+        assert snapshot.source == "seeded-variant-evidence"
+        assert snapshot.normalized_hgvs == "NM_000546.6:c.524G>A"
+        assert snapshot.impact == "MODERATE"
+        assert snapshot.clinical_significance == "Pathogenic"
     finally:
         db.close()
 

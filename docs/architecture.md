@@ -10,10 +10,11 @@
 6. Analysis service stores a `variant_queries` row and an `analysis_jobs` row.
 7. Analysis service enqueues the analysis job in Redis through RQ.
 8. Worker process picks up the queued job.
-9. Worker delegates status transitions, external reference enrichment, guarded explanations, similarity work, and failure persistence back to the analysis service.
+9. Worker delegates status transitions, external reference enrichment, variant evidence snapshots, guarded explanations, similarity work, and failure persistence back to the analysis service.
 10. External enrichment stores an `external_reference_snapshots` row so live API evidence, mock evidence, and lookup failures are auditable.
-11. Frontend polls `/api/jobs/{job_id}` and then loads `/api/variants/{query_id}`.
-12. User can view history and open an HTML report.
+11. Variant evidence stores normalized HGVS, transcript IDs, consequence terms, impact, clinical significance, and source links in `variant_evidence_snapshots`.
+12. Frontend polls `/api/jobs/{job_id}` and then loads `/api/variants/{query_id}`.
+13. User can view history and open an HTML report.
 
 ## Reliability Surfaces
 
@@ -23,12 +24,13 @@
 - Invalid parser input returns `422`.
 - Unknown reference variants return `404`.
 - External reference lookup failures are captured on the query result and do not fail an otherwise valid analysis.
+- Variant evidence is persisted separately from AI explanations so source evidence remains auditable.
 - Worker failures are persisted in `analysis_jobs.error_message`.
 - Routes stay thin while service-level tests cover persistence and dependency failure behavior.
 - The frontend surfaces queued, processing, completed, and failed states.
 
 ## Testing Strategy
 
-- Unit tests cover parser, prompt building, external reference mapping, external API fallback, and similarity math.
-- Integration tests cover auth, service orchestration, job creation, worker execution, result retrieval, history, report generation, invalid input, unknown variants, external reference snapshots, and dependency failures.
+- Unit tests cover parser, prompt building, external reference mapping, variant evidence normalization, external API fallback, and similarity math.
+- Integration tests cover auth, service orchestration, job creation, worker execution, result retrieval, history, report generation, invalid input, unknown variants, external reference snapshots, variant evidence snapshots, and dependency failures.
 - Playwright test covers the browser registration and analysis submission workflow.

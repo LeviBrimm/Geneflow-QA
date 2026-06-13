@@ -23,6 +23,9 @@ SEED_DATA = [
                 "summary": "A duplication in BRCA1 that disrupts the reading frame in public reference annotations.",
                 "position": 5266,
                 "domain": "BRCT domain",
+                "transcript_id": "NM_007294.4",
+                "transcript_hgvs": "NM_007294.4:c.5266dupC",
+                "protein_hgvs": "NP_009225.1:p.Gln1756Profs",
             }
         ],
     },
@@ -41,6 +44,9 @@ SEED_DATA = [
                 "summary": "A recurrent TP53 missense variant affecting the DNA-binding domain.",
                 "position": 175,
                 "domain": "DNA-binding domain",
+                "transcript_id": "NM_000546.6",
+                "transcript_hgvs": "NM_000546.6:c.524G>A",
+                "protein_hgvs": "NP_000537.3:p.Arg175His",
             }
         ],
     },
@@ -59,6 +65,9 @@ SEED_DATA = [
                 "summary": "A common CFTR deletion removing phenylalanine at position 508.",
                 "position": 508,
                 "domain": "NBD1",
+                "transcript_id": "NM_000492.4",
+                "transcript_hgvs": "NM_000492.4:c.1521_1523delCTT",
+                "protein_hgvs": "NP_000483.3:p.Phe508del",
             }
         ],
     },
@@ -67,6 +76,7 @@ SEED_DATA = [
 
 def seed_reference_data(db: Session) -> None:
     if db.scalar(select(Gene).limit(1)):
+        _update_seed_variant_metadata(db)
         return
     for gene_data in SEED_DATA:
         variants = gene_data["variants"]
@@ -85,6 +95,26 @@ def seed_reference_data(db: Session) -> None:
                 VariantEmbedding(variant_id=variant.id, embedding=vector_to_storage(_seed_embedding(variant.summary)))
             )
     db.commit()
+
+
+def _update_seed_variant_metadata(db: Session) -> None:
+    updated = False
+    for gene_data in SEED_DATA:
+        for variant_data in gene_data["variants"]:
+            variant = db.scalar(
+                select(Variant)
+                .join(Gene)
+                .where(Gene.symbol == gene_data["symbol"])
+                .where(Variant.hgvs == variant_data["hgvs"])
+            )
+            if not variant:
+                continue
+            for field in ("transcript_id", "transcript_hgvs", "protein_hgvs"):
+                if getattr(variant, field) != variant_data[field]:
+                    setattr(variant, field, variant_data[field])
+                    updated = True
+    if updated:
+        db.commit()
 
 
 def lookup_variant(db: Session, parsed: ParsedVariant) -> Variant | None:

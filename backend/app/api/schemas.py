@@ -55,6 +55,23 @@ class ExternalReferenceResponse(BaseModel):
     error_message: str | None
 
 
+class VariantEvidenceResponse(BaseModel):
+    source: str
+    lookup_status: str
+    evidence_level: str
+    submitted_notation: str | None
+    normalized_hgvs: str | None
+    rsid: str | None
+    transcript_id: str | None
+    consequence_terms: list[str]
+    impact: str | None
+    clinical_significance: str | None
+    condition: str | None
+    review_status: str | None
+    external_url: str | None
+    error_message: str | None
+
+
 class SimilarVariantResponse(BaseModel):
     variant_id: int
     gene: str
@@ -69,6 +86,7 @@ class VariantResultResponse(QuerySummaryResponse):
     reference: ReferenceDataResponse
     explanations: ExplanationResponse
     external_reference: ExternalReferenceResponse
+    variant_evidence: list[VariantEvidenceResponse]
     similar_variants: list[SimilarVariantResponse]
 
 

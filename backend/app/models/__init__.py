@@ -6,6 +6,7 @@ from app.models.variant import (
     ExternalReferenceSnapshot,
     Variant,
     VariantEmbedding,
+    VariantEvidenceSnapshot,
     VariantQuery,
 )
 
@@ -17,5 +18,6 @@ __all__ = [
     "User",
     "Variant",
     "VariantEmbedding",
+    "VariantEvidenceSnapshot",
     "VariantQuery",
 ]

@@ -22,10 +22,11 @@ def test_alembic_upgrade_creates_initial_schema(tmp_path, monkeypatch):
         "analysis_jobs",
         "explanations",
         "external_reference_snapshots",
+        "variant_evidence_snapshots",
         "variant_embeddings",
     }.issubset(set(inspector.get_table_names()))
 
     with engine.connect() as connection:
         revision = connection.execute(text("select version_num from alembic_version")).scalar_one()
 
-    assert revision == "20260608_0002"
+    assert revision == "20260609_0003"

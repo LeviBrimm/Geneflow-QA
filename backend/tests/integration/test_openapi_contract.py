@@ -92,6 +92,7 @@ def test_result_contract_includes_external_reference_schema(client):
     result_schema = schema["components"]["schemas"]["VariantResultResponse"]
 
     assert result_schema["properties"]["external_reference"]["$ref"].endswith("/ExternalReferenceResponse")
+    assert result_schema["properties"]["variant_evidence"]["items"]["$ref"].endswith("/VariantEvidenceResponse")
 
     external_schema = schema["components"]["schemas"]["ExternalReferenceResponse"]
     assert {
@@ -104,6 +105,24 @@ def test_result_contract_includes_external_reference_schema(client):
         "summary",
         "error_message",
     }.issubset(set(external_schema["properties"]))
+
+    variant_evidence_schema = schema["components"]["schemas"]["VariantEvidenceResponse"]
+    assert {
+        "source",
+        "lookup_status",
+        "evidence_level",
+        "submitted_notation",
+        "normalized_hgvs",
+        "rsid",
+        "transcript_id",
+        "consequence_terms",
+        "impact",
+        "clinical_significance",
+        "condition",
+        "review_status",
+        "external_url",
+        "error_message",
+    }.issubset(set(variant_evidence_schema["properties"]))
 
 
 def test_openapi_documents_list_response_models(client):
