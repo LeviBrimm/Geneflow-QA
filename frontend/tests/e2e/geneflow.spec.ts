@@ -52,6 +52,24 @@ test.beforeEach(async ({ page }) => {
           summary: "Mock Ensembl enrichment for BRCA1.",
           error_message: null,
         },
+        variant_evidence: [
+          {
+            source: "seeded-variant-evidence",
+            lookup_status: "success",
+            evidence_level: "seeded_internal_match",
+            submitted_notation: "BRCA1 c.5266dupC",
+            normalized_hgvs: "NM_007294.4:c.5266dupC",
+            rsid: "rs80357906",
+            transcript_id: "NM_007294.4",
+            consequence_terms: ["frameshift_variant", "coding_sequence_variant"],
+            impact: "HIGH",
+            clinical_significance: "Pathogenic",
+            condition: "Hereditary breast and ovarian cancer syndrome",
+            review_status: "curated educational seed",
+            external_url: "https://www.ncbi.nlm.nih.gov/clinvar/?term=rs80357906",
+            error_message: null,
+          },
+        ],
         similar_variants: [
           {
             variant_id: 2,
@@ -88,9 +106,11 @@ test("user can register, submit a variant, view results, and open history", asyn
   await expect(page.getByRole("status")).toContainText(/Analysis status/i);
   await expect(page.getByRole("status")).toContainText(/processing/i);
   await expect(page.getByRole("heading", { name: "BRCA1 c.5266dupC" })).toBeVisible();
-  await expect(page.locator(".summary-grid").getByText("Pathogenic")).toBeVisible();
+  await expect(page.locator(".summary-grid").first().getByText("Pathogenic")).toBeVisible();
   await expect(page.getByText("External Reference")).toBeVisible();
   await expect(page.getByText("ENSG00000012048")).toBeVisible();
+  await expect(page.getByText("Consequence Snapshot")).toBeVisible();
+  await expect(page.getByText("NM_007294.4:c.5266dupC")).toBeVisible();
   await expect(page.getByText("General guarded explanation")).toBeVisible();
   await expect(page.getByText("TP53 p.R175H")).toBeVisible();
 

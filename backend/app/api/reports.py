@@ -26,6 +26,7 @@ def report(query_id: int, db: Session = Depends(get_db), current_user: User = De
             selectinload(VariantQuery.variant),
             selectinload(VariantQuery.explanation),
             selectinload(VariantQuery.external_reference),
+            selectinload(VariantQuery.variant_evidence_snapshots),
         )
         .where(VariantQuery.id == query_id)
         .where(VariantQuery.user_id == current_user.id)

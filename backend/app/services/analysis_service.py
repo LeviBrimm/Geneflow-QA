@@ -13,6 +13,11 @@ from app.services.external_reference import fetch_external_reference, save_exter
 from app.services.parser import VariantParseError, parse_variant
 from app.services.reference_data import lookup_variant
 from app.services.similarity import similar_variants
+from app.services.variant_evidence import (
+    build_seeded_variant_evidence,
+    save_variant_evidence_snapshots,
+    serialize_variant_evidence,
+)
 
 
 class EnqueueAnalysisJob(Protocol):
@@ -89,6 +94,7 @@ def get_query_result(db: Session, user: User, query_id: int) -> dict:
             selectinload(VariantQuery.variant),
             selectinload(VariantQuery.explanation),
             selectinload(VariantQuery.external_reference),
+            selectinload(VariantQuery.variant_evidence_snapshots),
             selectinload(VariantQuery.job),
         )
         .where(VariantQuery.id == query_id)
@@ -124,6 +130,7 @@ def get_query_result(db: Session, user: User, query_id: int) -> dict:
             "model_used": query.explanation.model_used if query.explanation else None,
         },
         "external_reference": _external_reference(query),
+        "variant_evidence": serialize_variant_evidence(query.variant_evidence_snapshots),
         "similar_variants": similar_variants(db, variant.id) if variant else [],
     }
 
@@ -147,6 +154,7 @@ def complete_analysis_job(db: Session, job: AnalysisJob, ai_mode: str) -> None:
 
     external_reference = fetch_external_reference(query.variant.gene, query.variant)
     db.add(save_external_reference_snapshot(query, external_reference))
+    db.add_all(save_variant_evidence_snapshots(query, build_seeded_variant_evidence(query, query.variant)))
 
     result = generate_explanation(query.variant.gene, query.variant, ai_mode)
     db.add(

@@ -149,6 +149,51 @@ export function ResultPage() {
           )}
         </article>
 
+        <article className="panel evidence-card span-12 variant-evidence-card">
+          <div className="section-header tight">
+            <div>
+              <p className="eyebrow">Variant-level evidence</p>
+              <h2>Consequence Snapshot</h2>
+            </div>
+            <span className="model-pill">{result.variant_evidence[0]?.evidence_level ?? "pending"}</span>
+          </div>
+          {result.variant_evidence.map((item) => (
+            <div className="variant-evidence-record" key={`${item.source}-${item.normalized_hgvs ?? item.rsid}`}>
+              <div className="summary-grid">
+                <Metric label="Normalized HGVS" value={item.normalized_hgvs} />
+                <Metric label="Transcript" value={item.transcript_id} />
+                <Metric label="Impact" value={item.impact} />
+                <Metric label="Clinical Significance" value={item.clinical_significance} />
+              </div>
+              <dl className="evidence-list compact">
+                <div>
+                  <dt>Consequence terms</dt>
+                  <dd>{item.consequence_terms.length ? item.consequence_terms.join(", ") : "Unavailable"}</dd>
+                </div>
+                <div>
+                  <dt>Condition</dt>
+                  <dd>{item.condition ?? "Unavailable"}</dd>
+                </div>
+                <div>
+                  <dt>Review status</dt>
+                  <dd>{item.review_status ?? "Unavailable"}</dd>
+                </div>
+                <div>
+                  <dt>Source</dt>
+                  <dd>{item.source}</dd>
+                </div>
+              </dl>
+              {item.external_url && (
+                <a className="secondary-button inline-link" href={item.external_url} target="_blank" rel="noreferrer">
+                  <ExternalLink size={16} />
+                  <span>Open variant evidence</span>
+                </a>
+              )}
+            </div>
+          ))}
+          {!result.variant_evidence.length && <p className="evidence-summary">Variant-level evidence is pending.</p>}
+        </article>
+
         <article className="panel explanation-panel span-12">
           <div className="section-header tight">
             <div>

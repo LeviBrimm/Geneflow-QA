@@ -57,6 +57,7 @@ export type VariantResult = {
     summary: string | null;
     error_message: string | null;
   };
+  variant_evidence: VariantEvidence[];
   similar_variants: SimilarVariant[];
 };
 
@@ -75,4 +76,21 @@ export type SimilarVariant = {
   significance: string;
   condition: string;
   similarity_score: number;
+};
+
+export type VariantEvidence = {
+  source: string;
+  lookup_status: string;
+  evidence_level: string;
+  submitted_notation: string | null;
+  normalized_hgvs: string | null;
+  rsid: string | null;
+  transcript_id: string | null;
+  consequence_terms: string[];
+  impact: string | null;
+  clinical_significance: string | null;
+  condition: string | null;
+  review_status: string | null;
+  external_url: string | null;
+  error_message: string | null;
 };

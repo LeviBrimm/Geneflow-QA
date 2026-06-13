@@ -56,5 +56,6 @@ def test_reference_lookup_returns_seeded_variant(client):
         assert variant is not None
         assert variant.significance == "Pathogenic"
         assert variant.gene.symbol == "TP53"
+        assert variant.transcript_hgvs == "NM_000546.6:c.524G>A"
     finally:
         db.close()

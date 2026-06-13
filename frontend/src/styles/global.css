@@ -788,6 +788,19 @@ a.table-row:hover,
     #fffdf8;
 }
 
+.variant-evidence-card {
+  background: #fffdf8;
+}
+
+.variant-evidence-record {
+  display: grid;
+  gap: 14px;
+}
+
+.evidence-list.compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .external-source {
   align-items: center;
   background: #171411;
@@ -1099,6 +1112,7 @@ a.table-row:hover,
   .progress-track,
   .summary-grid,
   .explanation-grid,
+  .evidence-list.compact,
   .history-summary {
     grid-template-columns: 1fr;
   }

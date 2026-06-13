@@ -20,6 +20,9 @@ class Variant(Base):
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     position: Mapped[int | None] = mapped_column(Integer)
     domain: Mapped[str | None] = mapped_column(String(128))
+    transcript_id: Mapped[str | None] = mapped_column(String(128))
+    transcript_hgvs: Mapped[str | None] = mapped_column(String(255))
+    protein_hgvs: Mapped[str | None] = mapped_column(String(255))
 
     gene = relationship("Gene", back_populates="variants")
     embeddings = relationship("VariantEmbedding", back_populates="variant")
@@ -42,6 +45,7 @@ class VariantQuery(Base):
     job = relationship("AnalysisJob", back_populates="query", uselist=False)
     explanation = relationship("Explanation", back_populates="query", uselist=False)
     external_reference = relationship("ExternalReferenceSnapshot", back_populates="query", uselist=False)
+    variant_evidence_snapshots = relationship("VariantEvidenceSnapshot", back_populates="query")
 
 
 class AnalysisJob(Base):
@@ -97,3 +101,28 @@ class ExternalReferenceSnapshot(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     query = relationship("VariantQuery", back_populates="external_reference")
+
+
+class VariantEvidenceSnapshot(Base):
+    __tablename__ = "variant_evidence_snapshots"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    query_id: Mapped[int] = mapped_column(ForeignKey("variant_queries.id"), nullable=False)
+    source: Mapped[str] = mapped_column(String(64), nullable=False)
+    lookup_status: Mapped[str] = mapped_column(String(32), nullable=False)
+    evidence_level: Mapped[str] = mapped_column(String(64), nullable=False)
+    submitted_notation: Mapped[str | None] = mapped_column(String(255))
+    normalized_hgvs: Mapped[str | None] = mapped_column(String(255))
+    rsid: Mapped[str | None] = mapped_column(String(64))
+    transcript_id: Mapped[str | None] = mapped_column(String(128))
+    consequence_terms: Mapped[str | None] = mapped_column(Text)
+    impact: Mapped[str | None] = mapped_column(String(64))
+    clinical_significance: Mapped[str | None] = mapped_column(String(128))
+    condition: Mapped[str | None] = mapped_column(String(255))
+    review_status: Mapped[str | None] = mapped_column(String(128))
+    external_url: Mapped[str | None] = mapped_column(String(512))
+    raw_payload: Mapped[str | None] = mapped_column(Text)
+    error_message: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+
+    query = relationship("VariantQuery", back_populates="variant_evidence_snapshots")

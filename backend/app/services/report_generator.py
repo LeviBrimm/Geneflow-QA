@@ -9,6 +9,11 @@ def generate_html_report(query: VariantQuery, similar: list[dict]) -> str:
     gene = variant.gene if variant else None
     explanation = query.explanation
     external_reference = query.external_reference
+    variant_evidence_items = "".join(
+        f"<li>{escape(item.normalized_hgvs or 'Unknown HGVS')} - {escape(item.impact or 'Unknown impact')} "
+        f"({escape(item.clinical_significance or 'No clinical significance')})</li>"
+        for item in query.variant_evidence_snapshots
+    )
     similar_items = "".join(
         f"<li>{escape(item['gene'])} {escape(item['hgvs'])} - score {item['similarity_score']}</li>" for item in similar
     )
@@ -44,6 +49,8 @@ def generate_html_report(query: VariantQuery, similar: list[dict]) -> str:
   <p><strong>Location:</strong> {escape(external_location)}</p>
   <p>{escape(external_summary)}</p>
   {external_link}
+  <h2>Variant Evidence</h2>
+  <ul>{variant_evidence_items or "<li>Variant-level evidence is pending.</li>"}</ul>
   <h2>General Explanation</h2>
   <p>{escape(explanation.general_explanation if explanation else "Pending")}</p>
   <h2>Technical Explanation</h2>
