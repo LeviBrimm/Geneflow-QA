@@ -16,6 +16,7 @@ def test_auth_analyze_job_result_report_flow(client, auth_headers):
     assert result.status_code == 200
     result_payload = result.json()
     assert result_payload["parsed"]["gene"] == "BRCA1"
+    assert result_payload["reference"]["reference_source"] == "seeded"
     assert result_payload["reference"]["significance"] == "Pathogenic"
     assert result_payload["external_reference"]["lookup_status"] == "success"
     assert result_payload["external_reference"]["source"] == "ensembl-mock"

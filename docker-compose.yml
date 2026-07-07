@@ -30,6 +30,8 @@ services:
       CORS_ORIGINS: http://localhost:5173
       REDIS_URL: redis://redis:6379/0
       ANALYSIS_QUEUE_MODE: rq
+      EXTERNAL_REFERENCE_MODE: live
+      EXTERNAL_REFERENCE_TIMEOUT_SECONDS: "30"
     ports:
       - "8001:8000"
     depends_on:
@@ -53,6 +55,8 @@ services:
       DATABASE_URL: postgresql+psycopg://geneflow:geneflow@db:5432/geneflow
       REDIS_URL: redis://redis:6379/0
       ANALYSIS_QUEUE_MODE: rq
+      EXTERNAL_REFERENCE_MODE: live
+      EXTERNAL_REFERENCE_TIMEOUT_SECONDS: "30"
     depends_on:
       db:
         condition: service_healthy

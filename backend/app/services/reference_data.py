@@ -1,8 +1,10 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config.settings import get_settings
 from app.models.gene import Gene
 from app.models.variant import Variant, VariantEmbedding
+from app.services.external_reference import fetch_ensembl_variant_reference
 from app.services.parser import ParsedVariant
 from app.services.similarity import vector_to_storage
 
@@ -89,6 +91,7 @@ def seed_reference_data(db: Session) -> None:
         db.flush()
         for variant_data in variants:
             variant = Variant(gene_id=gene.id, **variant_data)
+            variant.reference_source = "seeded"
             db.add(variant)
             db.flush()
             db.add(
@@ -109,6 +112,9 @@ def _update_seed_variant_metadata(db: Session) -> None:
             )
             if not variant:
                 continue
+            if variant.reference_source != "seeded":
+                variant.reference_source = "seeded"
+                updated = True
             for field in ("transcript_id", "transcript_hgvs", "protein_hgvs"):
                 if getattr(variant, field) != variant_data[field]:
                     setattr(variant, field, variant_data[field])
@@ -121,6 +127,54 @@ def lookup_variant(db: Session, parsed: ParsedVariant) -> Variant | None:
     return db.scalar(
         select(Variant).join(Gene).where(Gene.symbol == parsed.gene).where(Variant.hgvs == parsed.notation)
     )
+
+
+def resolve_variant_reference(db: Session, parsed: ParsedVariant) -> Variant | None:
+    variant = lookup_variant(db, parsed)
+    if variant:
+        return variant
+
+    settings = get_settings()
+    if settings.external_reference_mode.lower() != "live":
+        return None
+
+    ensembl_reference = fetch_ensembl_variant_reference(
+        parsed.gene,
+        parsed.notation,
+        parsed.variant_type,
+        base_url=settings.external_reference_base_url,
+        timeout=settings.external_reference_timeout_seconds,
+    )
+    gene = db.scalar(select(Gene).where(Gene.symbol == parsed.gene))
+    if not gene:
+        gene = Gene(
+            symbol=ensembl_reference.gene_symbol,
+            full_name=ensembl_reference.gene_full_name,
+            description=ensembl_reference.gene_description,
+        )
+        db.add(gene)
+        db.flush()
+
+    variant = Variant(
+        gene_id=gene.id,
+        hgvs=ensembl_reference.hgvs,
+        rsid=ensembl_reference.rsid,
+        variant_type=ensembl_reference.variant_type,
+        significance=ensembl_reference.significance,
+        condition=ensembl_reference.condition,
+        allele_frequency=ensembl_reference.allele_frequency,
+        summary=ensembl_reference.summary,
+        position=ensembl_reference.position,
+        domain=ensembl_reference.domain,
+        reference_source="ensembl_vep",
+        transcript_id=ensembl_reference.transcript_id,
+        transcript_hgvs=ensembl_reference.transcript_hgvs,
+        protein_hgvs=ensembl_reference.protein_hgvs,
+    )
+    db.add(variant)
+    db.flush()
+    db.add(VariantEmbedding(variant_id=variant.id, embedding=vector_to_storage(_seed_embedding(variant.summary))))
+    return variant
 
 
 def _seed_embedding(text: str) -> list[float]:

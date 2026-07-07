@@ -84,6 +84,7 @@ export function ResultPage() {
             <Metric label="Notation" value={result.parsed.notation} />
             <Metric label="Type" value={result.parsed.variant_type} />
             <Metric label="Significance" value={result.reference.significance} />
+            <Metric label="Reference Source" value={formatReferenceSource(result.reference.reference_source)} />
           </div>
           <GeneVisualization result={result} />
         </article>
@@ -249,4 +250,10 @@ function Metric({ label, value }: { label: string; value: string | number | null
       <strong>{value ?? "Unavailable"}</strong>
     </div>
   );
+}
+
+function formatReferenceSource(source: string | null) {
+  if (source === "ensembl_vep") return "Live Ensembl VEP";
+  if (source === "seeded") return "Seeded demo record";
+  return source;
 }

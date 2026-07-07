@@ -32,15 +32,16 @@ export type VariantResult = {
     is_valid: boolean;
   };
   reference: {
-    gene_full_name: string;
-    gene_description: string;
-    rsid: string;
-    significance: string;
-    condition: string;
-    allele_frequency: number;
-    summary: string;
-    position: number;
-    domain: string;
+    gene_full_name: string | null;
+    gene_description: string | null;
+    rsid: string | null;
+    significance: string | null;
+    condition: string | null;
+    allele_frequency: number | null;
+    summary: string | null;
+    position: number | null;
+    domain: string | null;
+    reference_source: string | null;
   };
   explanations: {
     general: string | null;

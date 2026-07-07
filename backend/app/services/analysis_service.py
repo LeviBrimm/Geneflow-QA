@@ -11,10 +11,10 @@ from app.models.variant import AnalysisJob, Explanation, VariantQuery
 from app.services.ai_explainer import generate_explanation
 from app.services.external_reference import fetch_external_reference, save_external_reference_snapshot
 from app.services.parser import VariantParseError, parse_variant
-from app.services.reference_data import lookup_variant
+from app.services.reference_data import resolve_variant_reference
 from app.services.similarity import similar_variants
 from app.services.variant_evidence import (
-    build_seeded_variant_evidence,
+    build_variant_evidence,
     save_variant_evidence_snapshots,
     serialize_variant_evidence,
 )
@@ -58,7 +58,11 @@ def submit_variant_analysis(
     except VariantParseError as exc:
         raise InvalidVariantInputError(str(exc)) from exc
 
-    variant = lookup_variant(db, parsed)
+    try:
+        variant = resolve_variant_reference(db, parsed)
+    except Exception as exc:  # noqa: BLE001 - live reference failures should return a user-facing validation error.
+        db.rollback()
+        raise VariantReferenceNotFoundError(f"Variant was not found in local or Ensembl reference data: {exc}") from exc
     if not variant:
         raise VariantReferenceNotFoundError("Variant not found in reference data.")
 
@@ -123,6 +127,7 @@ def get_query_result(db: Session, user: User, query_id: int) -> dict:
             "summary": variant.summary if variant else None,
             "position": variant.position if variant else None,
             "domain": variant.domain if variant else None,
+            "reference_source": variant.reference_source if variant else None,
         },
         "explanations": {
             "general": query.explanation.general_explanation if query.explanation else None,
@@ -154,7 +159,7 @@ def complete_analysis_job(db: Session, job: AnalysisJob, ai_mode: str) -> None:
 
     external_reference = fetch_external_reference(query.variant.gene, query.variant)
     db.add(save_external_reference_snapshot(query, external_reference))
-    db.add_all(save_variant_evidence_snapshots(query, build_seeded_variant_evidence(query, query.variant)))
+    db.add_all(save_variant_evidence_snapshots(query, build_variant_evidence(query, query.variant)))
 
     result = generate_explanation(query.variant.gene, query.variant, ai_mode)
     db.add(
