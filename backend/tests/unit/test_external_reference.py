@@ -3,7 +3,12 @@ from types import SimpleNamespace
 import pytest
 
 from app.services import external_reference
-from app.services.external_reference import ExternalReferenceError, _fetch_ensembl_reference, fetch_external_reference
+from app.services.external_reference import (
+    ExternalReferenceError,
+    _fetch_ensembl_reference,
+    fetch_ensembl_variant_reference,
+    fetch_external_reference,
+)
 
 
 def test_fetch_ensembl_reference_maps_successful_response(monkeypatch):
@@ -56,6 +61,74 @@ def test_fetch_ensembl_reference_rejects_unexpected_payload(monkeypatch):
 
     with pytest.raises(ExternalReferenceError):
         _fetch_ensembl_reference("BRCA1", "https://rest.ensembl.org", 3.0)
+
+
+def test_fetch_ensembl_variant_reference_maps_vep_response(monkeypatch):
+    class FakeResponse:
+        def __init__(self, payload):
+            self.payload = payload
+
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return self.payload
+
+    def fake_get(url, *_args, **_kwargs):
+        if "/lookup/symbol/" in url:
+            return FakeResponse(
+                {
+                    "id": "ENSG00000157764",
+                    "display_name": "BRAF",
+                    "description": "B-Raf proto-oncogene, serine/threonine kinase [Source:HGNC Symbol]",
+                    "biotype": "protein_coding",
+                    "seq_region_name": "7",
+                    "start": 140719327,
+                    "end": 140924929,
+                }
+            )
+        return FakeResponse(
+            [
+                {
+                    "input": "BRAF:p.V600E",
+                    "id": "rs113488022",
+                    "seq_region_name": "7",
+                    "start": 140753336,
+                    "end": 140753336,
+                    "most_severe_consequence": "missense_variant",
+                    "variant_class": "SNV",
+                    "transcript_consequences": [
+                        {
+                            "gene_symbol": "BRAF",
+                            "gene_id": "ENSG00000157764",
+                            "transcript_id": "ENST00000646891",
+                            "canonical": 1,
+                            "impact": "MODERATE",
+                            "consequence_terms": ["missense_variant"],
+                            "hgvsc": "ENST00000646891.2:c.1799T>A",
+                            "hgvsp": "ENSP00000493543.1:p.Val600Glu",
+                        }
+                    ],
+                    "colocated_variants": [
+                        {"id": "rs113488022", "clin_sig": ["pathogenic"], "minor_allele_freq": 0.0001}
+                    ],
+                }
+            ]
+        )
+
+    monkeypatch.setattr(external_reference.httpx, "get", fake_get)
+
+    result = fetch_ensembl_variant_reference("BRAF", "p.V600E", "missense", "https://rest.ensembl.org", 3.0)
+
+    assert result.gene_symbol == "BRAF"
+    assert result.gene_full_name == "B-Raf proto-oncogene, serine/threonine kinase"
+    assert result.hgvs == "p.V600E"
+    assert result.rsid == "rs113488022"
+    assert result.transcript_id == "ENST00000646891"
+    assert result.transcript_hgvs == "ENST00000646891.2:c.1799T>A"
+    assert result.protein_hgvs == "ENSP00000493543.1:p.Val600Glu"
+    assert result.significance == "pathogenic"
+    assert result.allele_frequency == 0.0001
 
 
 def test_fetch_external_reference_uses_deterministic_mock_mode(monkeypatch):

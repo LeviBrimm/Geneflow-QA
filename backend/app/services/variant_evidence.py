@@ -70,6 +70,12 @@ def build_seeded_variant_evidence(query: VariantQuery, variant: Variant) -> list
     ]
 
 
+def build_variant_evidence(query: VariantQuery, variant: Variant) -> list[VariantEvidenceResult]:
+    if variant.reference_source == "ensembl_vep":
+        return _build_ensembl_variant_evidence(query, variant)
+    return build_seeded_variant_evidence(query, variant)
+
+
 def save_variant_evidence_snapshots(
     query: VariantQuery, evidence_results: list[VariantEvidenceResult]
 ) -> list[VariantEvidenceSnapshot]:
@@ -122,6 +128,43 @@ def _clinvar_url(rsid: str | None) -> str | None:
     if not rsid:
         return None
     return f"https://www.ncbi.nlm.nih.gov/clinvar/?term={rsid}"
+
+
+def _build_ensembl_variant_evidence(query: VariantQuery, variant: Variant) -> list[VariantEvidenceResult]:
+    normalized_hgvs = variant.transcript_hgvs or f"{variant.gene.symbol}:{variant.hgvs}"
+    terms = CONSEQUENCE_BY_TYPE.get(variant.variant_type, ["sequence_variant"])
+    impact = IMPACT_BY_TYPE.get(variant.variant_type, "MODIFIER")
+    payload = {
+        "gene": variant.gene.symbol,
+        "variant": variant.hgvs,
+        "transcript_hgvs": variant.transcript_hgvs,
+        "protein_hgvs": variant.protein_hgvs,
+        "rsid": variant.rsid,
+        "evidence_source": "ensembl_vep",
+    }
+
+    return [
+        VariantEvidenceResult(
+            source="ensembl-vep",
+            lookup_status="success",
+            evidence_level="live_external_match",
+            submitted_notation=query.raw_input,
+            normalized_hgvs=normalized_hgvs,
+            rsid=variant.rsid,
+            transcript_id=variant.transcript_id,
+            consequence_terms=terms,
+            impact=impact,
+            clinical_significance=variant.significance,
+            condition=variant.condition,
+            review_status="live Ensembl annotation",
+            external_url=_ensembl_variant_url(variant.gene.symbol, variant.hgvs),
+            raw_payload=payload,
+        )
+    ]
+
+
+def _ensembl_variant_url(gene_symbol: str, hgvs: str) -> str:
+    return f"https://www.ensembl.org/Homo_sapiens/Tools/VEP?hgvs={gene_symbol}:{hgvs}"
 
 
 def _serialize_terms(terms: list[str] | None) -> str | None:

@@ -1,6 +1,6 @@
 # GeneFlow QA Platform
 
-GeneFlow QA Platform is a full-stack web app for exploring public genomic variant reference data. A user enters a variant, the app parses it, checks it against seeded reference records, starts an analysis job, enriches the result with gene-level and variant-level evidence, generates guarded explanations, shows similar variants, saves the query, and produces an HTML report.
+GeneFlow QA Platform is a full-stack web app for exploring public genomic variant reference data. A user enters a variant, the app parses it, checks stable seeded reference records first, optionally falls back to live Ensembl VEP evidence, starts an analysis job, enriches the result with gene-level and variant-level evidence, generates guarded explanations, shows similar variants, saves the query, and produces an HTML report.
 
 This is an educational project. It uses public/sample-safe data only, does not use patient data, and does not provide medical advice.
 
@@ -12,9 +12,9 @@ This is an educational project. It uses public/sample-safe data only, does not u
 - PostgreSQL data model for users, genes, variants, submitted queries, jobs, explanations, and embeddings.
 - Alembic migrations for repeatable schema setup in Docker and local environments.
 - Deterministic mock explanation service by default, so the app can run and test without an external AI key.
-- External reference enrichment with deterministic mock mode locally and optional live Ensembl REST lookup.
+- External reference enrichment with deterministic mock mode and optional live Ensembl REST/VEP lookup.
 - Variant-level evidence snapshots for normalized HGVS, transcript IDs, consequence terms, impact, and clinical significance.
-- Seeded reference examples for `BRCA1`, `TP53`, and `CFTR`.
+- Seeded reference examples for fast, stable portfolio demos with live Ensembl fallback for broader public examples.
 - Request ID headers and structured logs for API and worker traceability.
 - Automated backend tests and Playwright E2E tests.
 - Docker Compose setup with PostgreSQL, Redis, backend, worker, and frontend.
@@ -62,6 +62,7 @@ Example variants:
 - `BRCA1 c.5266dupC`
 - `TP53 p.R175H`
 - `CFTR ΔF508`
+- `BRAF c.1799T>A` when live Ensembl lookup is enabled
 
 ## QA Strategy
 

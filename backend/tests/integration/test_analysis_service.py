@@ -1,10 +1,13 @@
+from types import SimpleNamespace
+
 import pytest
 from sqlalchemy import func, select
 
 from app.db.database import SessionLocal
 from app.models.user import User
-from app.models.variant import AnalysisJob, ExternalReferenceSnapshot, VariantEvidenceSnapshot, VariantQuery
+from app.models.variant import AnalysisJob, ExternalReferenceSnapshot, Variant, VariantEvidenceSnapshot, VariantQuery
 from app.services import analysis_service
+from app.services import reference_data
 from app.services.analysis_service import (
     InvalidVariantInputError,
     VariantReferenceNotFoundError,
@@ -14,6 +17,7 @@ from app.services.analysis_service import (
     submit_variant_analysis,
 )
 from app.services.external_reference import ExternalReferenceResult
+from app.services.external_reference import EnsemblVariantReference
 
 
 def test_submit_variant_analysis_creates_query_job_and_enqueues(client):
@@ -67,6 +71,58 @@ def test_unknown_variant_submission_does_not_create_rows(client):
             submit_variant_analysis(db, user, "BRCA1 c.9999dupC", lambda _: None)
 
         assert _query_count(db) == before
+    finally:
+        db.close()
+
+
+def test_live_reference_submission_creates_dynamic_variant(client, monkeypatch):
+    user = _registered_user(client, "service-live-reference@example.com")
+    enqueued_job_ids: list[str] = []
+    settings = SimpleNamespace(
+        external_reference_mode="live",
+        external_reference_base_url="https://rest.ensembl.org",
+        external_reference_timeout_seconds=3.0,
+    )
+    monkeypatch.setattr(reference_data, "get_settings", lambda: settings)
+    monkeypatch.setattr(
+        reference_data,
+        "fetch_ensembl_variant_reference",
+        lambda *_args, **_kwargs: EnsemblVariantReference(
+            gene_symbol="BRAF",
+            gene_full_name="B-Raf proto-oncogene, serine/threonine kinase",
+            gene_description="BRAF live Ensembl record",
+            hgvs="p.V600E",
+            variant_type="missense",
+            significance="pathogenic",
+            condition="Not provided by Ensembl VEP",
+            allele_frequency=0.0001,
+            summary="Live Ensembl VEP annotation for BRAF p.V600E.",
+            position=140753336,
+            domain=None,
+            transcript_id="ENST00000646891",
+            transcript_hgvs="ENST00000646891.2:c.1799T>A",
+            protein_hgvs="ENSP00000493543.1:p.Val600Glu",
+            rsid="rs113488022",
+            consequence_terms=["missense_variant"],
+            impact="MODERATE",
+            raw_payload={},
+        ),
+    )
+
+    db = SessionLocal()
+    try:
+        submission = submit_variant_analysis(db, user, "BRAF p.V600E", enqueued_job_ids.append)
+        query = db.get(VariantQuery, submission.query_id)
+        variant = db.scalar(select(Variant).where(Variant.hgvs == "p.V600E"))
+
+        assert query is not None
+        assert query.parsed_gene == "BRAF"
+        assert variant is not None
+        assert query.variant_id == variant.id
+        assert variant.gene.symbol == "BRAF"
+        assert variant.reference_source == "ensembl_vep"
+        assert variant.rsid == "rs113488022"
+        assert enqueued_job_ids == [submission.job_id]
     finally:
         db.close()
 

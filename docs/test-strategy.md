@@ -31,9 +31,9 @@ GeneFlow treats the application as a system under test. The SDET value is the la
 
 - Parser accepts supported examples, normalizes whitespace and delta symbols, and rejects malformed or unsupported notation.
 - Auth covers registration, duplicate registration, login failure, missing token, and invalid token.
-- Analysis service tests verify valid submissions create query/job rows and enqueue once, invalid or unknown variants create no query rows, and AI dependency failures can be persisted.
-- External reference tests verify Ensembl-style payload mapping, deterministic mock mode, live lookup failure capture, and persisted enrichment snapshots.
-- Variant evidence tests verify seeded normalized HGVS, consequence terms, impact, clinical significance, API shape, and persistence.
+- Analysis service tests verify valid seeded submissions create query/job rows and enqueue once, invalid or unknown variants create no query rows, mocked live Ensembl submissions create dynamic reference records, and AI dependency failures can be persisted.
+- External reference tests verify Ensembl-style gene and VEP payload mapping, deterministic mock mode, live lookup failure capture, and persisted enrichment snapshots.
+- Variant evidence tests verify seeded normalized HGVS, source-aware live evidence routing, consequence terms, impact, clinical significance, API shape, and persistence.
 - API contract tests cover required paths, HTTP methods, documented response codes, auth parameters, and typed schemas for analysis, history, result, job, similar-variant, and health responses.
 - API flow covers analysis creation, job lookup, result retrieval, history, report generation, invalid variant, unknown variant, and missing resources.
 - Migration coverage verifies `alembic upgrade head` creates the initial schema and records the expected revision.
@@ -54,6 +54,12 @@ Seeded public/sample-safe records:
 
 The seeded data is intentionally small so assertions stay stable and understandable during interviews.
 
+Live Ensembl fallback examples:
+
+- `BRAF c.1799T>A`
+
+Live Ensembl requests are intentionally mocked in automated tests so CI remains deterministic.
+
 ## Manual Smoke Checklist
 
 - `docker compose up --build`
@@ -61,6 +67,7 @@ The seeded data is intentionally small so assertions stay stable and understanda
 - Register with a test email and password.
 - Submit `BRCA1 c.5266dupC`.
 - Confirm status transitions to completed and the result page loads.
+- Submit `BRAF c.1799T>A` when live Ensembl mode is enabled and confirm the result source shows Ensembl VEP.
 - Open history and confirm the query appears.
 - Open the HTML report and confirm the disclaimer is present.
 

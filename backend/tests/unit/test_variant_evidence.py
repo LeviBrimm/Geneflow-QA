@@ -1,6 +1,10 @@
 from types import SimpleNamespace
 
-from app.services.variant_evidence import build_seeded_variant_evidence, serialize_variant_evidence
+from app.services.variant_evidence import (
+    build_seeded_variant_evidence,
+    build_variant_evidence,
+    serialize_variant_evidence,
+)
 
 
 def test_build_seeded_variant_evidence_normalizes_curated_variant():
@@ -26,6 +30,29 @@ def test_build_seeded_variant_evidence_normalizes_curated_variant():
     assert evidence[0].consequence_terms == ["frameshift_variant", "coding_sequence_variant"]
     assert evidence[0].impact == "HIGH"
     assert evidence[0].external_url == "https://www.ncbi.nlm.nih.gov/clinvar/?term=rs80357906"
+
+
+def test_build_variant_evidence_uses_live_source_marker():
+    query = SimpleNamespace(raw_input="BRAF c.1799T>A")
+    variant = SimpleNamespace(
+        gene=SimpleNamespace(symbol="BRAF"),
+        hgvs="c.1799T>A",
+        rsid="rs113488022",
+        variant_type="missense",
+        significance="uncertain_significance",
+        condition="Not provided by Ensembl VEP",
+        reference_source="ensembl_vep",
+        transcript_id="ENST00000646891",
+        transcript_hgvs="ENST00000646891.2:c.1799T>A",
+        protein_hgvs="ENSP00000493543.1:p.Val600Glu",
+    )
+
+    evidence = build_variant_evidence(query, variant)
+
+    assert evidence[0].source == "ensembl-vep"
+    assert evidence[0].evidence_level == "live_external_match"
+    assert evidence[0].normalized_hgvs == "ENST00000646891.2:c.1799T>A"
+    assert evidence[0].consequence_terms == ["missense_variant"]
 
 
 def test_serialize_variant_evidence_returns_api_shape():

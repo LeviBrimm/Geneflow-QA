@@ -70,14 +70,14 @@ export function HomePage() {
           <p className="eyebrow">Workbench</p>
           <h2>Variant intake</h2>
           <p className="rail-copy">
-            Submit one public reference variant at a time. GeneFlow tracks the request from validation through report
-            output.
+            Submit one public HGVS-style variant at a time. GeneFlow checks seeded records first, then falls back to
+            live Ensembl evidence.
           </p>
         </div>
         <div className="rail-specimen">
-          <span className="specimen-label">Current fixture</span>
-          <strong>BRCA1 c.5266dupC</strong>
-          <span>seeded public record</span>
+          <span className="specimen-label">Try live lookup</span>
+          <strong>BRAF c.1799T&gt;A</strong>
+          <span>Ensembl VEP-backed record</span>
         </div>
         <div className="rail-checks" aria-label="QA checks">
           <span><ShieldCheck size={15} /> Auth boundary</span>
@@ -98,8 +98,8 @@ export function HomePage() {
         </div>
 
         <p className="lede">
-          GeneFlow validates the submitted notation, matches public reference data, queues analysis work, stores
-          history, and produces an educational report with guarded explanations.
+          GeneFlow validates the submitted notation, resolves public reference data through local seeds or Ensembl,
+          queues analysis work, stores history, and produces an educational report with guarded explanations.
         </p>
 
         {isAuthed ? (
@@ -126,7 +126,7 @@ export function HomePage() {
         </div>
         <ol className="pipeline">
           <li>Parse and validate HGVS-style input</li>
-          <li>Match seeded public reference data</li>
+          <li>Resolve seeded or Ensembl reference data</li>
           <li>Create async analysis job</li>
           <li>Generate guarded explanations</li>
           <li>Persist history and report output</li>

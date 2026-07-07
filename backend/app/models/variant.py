@@ -20,6 +20,7 @@ class Variant(Base):
     summary: Mapped[str] = mapped_column(Text, nullable=False)
     position: Mapped[int | None] = mapped_column(Integer)
     domain: Mapped[str | None] = mapped_column(String(128))
+    reference_source: Mapped[str] = mapped_column(String(64), default="seeded", nullable=False)
     transcript_id: Mapped[str | None] = mapped_column(String(128))
     transcript_hgvs: Mapped[str | None] = mapped_column(String(255))
     protein_hgvs: Mapped[str | None] = mapped_column(String(255))

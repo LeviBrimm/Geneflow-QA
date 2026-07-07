@@ -36,6 +36,7 @@ class ReferenceDataResponse(BaseModel):
     summary: str | None
     position: int | None
     domain: str | None
+    reference_source: str | None
 
 
 class ExplanationResponse(BaseModel):

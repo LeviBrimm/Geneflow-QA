@@ -94,6 +94,9 @@ def test_result_contract_includes_external_reference_schema(client):
     assert result_schema["properties"]["external_reference"]["$ref"].endswith("/ExternalReferenceResponse")
     assert result_schema["properties"]["variant_evidence"]["items"]["$ref"].endswith("/VariantEvidenceResponse")
 
+    reference_schema = schema["components"]["schemas"]["ReferenceDataResponse"]
+    assert "reference_source" in reference_schema["properties"]
+
     external_schema = schema["components"]["schemas"]["ExternalReferenceResponse"]
     assert {
         "source",
