@@ -1,10 +1,11 @@
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config.settings import get_settings
 from app.models.gene import Gene
 from app.models.variant import Variant, VariantEmbedding
-from app.services.external_reference import fetch_ensembl_variant_reference
+from app.services.external_reference import EnsemblVariantReference, fetch_ensembl_variant_reference
 from app.services.parser import ParsedVariant
 from app.services.similarity import vector_to_storage
 
@@ -145,15 +146,10 @@ def resolve_variant_reference(db: Session, parsed: ParsedVariant) -> Variant | N
         base_url=settings.external_reference_base_url,
         timeout=settings.external_reference_timeout_seconds,
     )
-    gene = db.scalar(select(Gene).where(Gene.symbol == parsed.gene))
-    if not gene:
-        gene = Gene(
-            symbol=ensembl_reference.gene_symbol,
-            full_name=ensembl_reference.gene_full_name,
-            description=ensembl_reference.gene_description,
-        )
-        db.add(gene)
-        db.flush()
+    gene = _get_or_create_gene(db, ensembl_reference)
+    variant = lookup_variant(db, parsed)
+    if variant:
+        return variant
 
     variant = Variant(
         gene_id=gene.id,
@@ -172,9 +168,38 @@ def resolve_variant_reference(db: Session, parsed: ParsedVariant) -> Variant | N
         protein_hgvs=ensembl_reference.protein_hgvs,
     )
     db.add(variant)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing_variant = lookup_variant(db, parsed)
+        if existing_variant:
+            return existing_variant
+        raise
     db.add(VariantEmbedding(variant_id=variant.id, embedding=vector_to_storage(_seed_embedding(variant.summary))))
     return variant
+
+
+def _get_or_create_gene(db: Session, ensembl_reference: EnsemblVariantReference) -> Gene:
+    gene = db.scalar(select(Gene).where(Gene.symbol == ensembl_reference.gene_symbol))
+    if gene:
+        return gene
+
+    gene = Gene(
+        symbol=ensembl_reference.gene_symbol,
+        full_name=ensembl_reference.gene_full_name,
+        description=ensembl_reference.gene_description,
+    )
+    db.add(gene)
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing_gene = db.scalar(select(Gene).where(Gene.symbol == ensembl_reference.gene_symbol))
+        if existing_gene:
+            return existing_gene
+        raise
+    return gene
 
 
 def _seed_embedding(text: str) -> list[float]:

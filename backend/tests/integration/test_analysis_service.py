@@ -78,16 +78,18 @@ def test_unknown_variant_submission_does_not_create_rows(client):
 def test_live_reference_submission_creates_dynamic_variant(client, monkeypatch):
     user = _registered_user(client, "service-live-reference@example.com")
     enqueued_job_ids: list[str] = []
+    live_lookup_calls = 0
     settings = SimpleNamespace(
         external_reference_mode="live",
         external_reference_base_url="https://rest.ensembl.org",
         external_reference_timeout_seconds=3.0,
     )
     monkeypatch.setattr(reference_data, "get_settings", lambda: settings)
-    monkeypatch.setattr(
-        reference_data,
-        "fetch_ensembl_variant_reference",
-        lambda *_args, **_kwargs: EnsemblVariantReference(
+
+    def fake_ensembl_reference(*_args, **_kwargs):
+        nonlocal live_lookup_calls
+        live_lookup_calls += 1
+        return EnsemblVariantReference(
             gene_symbol="BRAF",
             gene_full_name="B-Raf proto-oncogene, serine/threonine kinase",
             gene_description="BRAF live Ensembl record",
@@ -106,7 +108,12 @@ def test_live_reference_submission_creates_dynamic_variant(client, monkeypatch):
             consequence_terms=["missense_variant"],
             impact="MODERATE",
             raw_payload={},
-        ),
+        )
+
+    monkeypatch.setattr(
+        reference_data,
+        "fetch_ensembl_variant_reference",
+        fake_ensembl_reference,
     )
 
     db = SessionLocal()
@@ -123,6 +130,17 @@ def test_live_reference_submission_creates_dynamic_variant(client, monkeypatch):
         assert variant.reference_source == "ensembl_vep"
         assert variant.rsid == "rs113488022"
         assert enqueued_job_ids == [submission.job_id]
+        assert live_lookup_calls == 1
+
+        second_submission = submit_variant_analysis(db, user, "BRAF p.V600E", enqueued_job_ids.append)
+        second_query = db.get(VariantQuery, second_submission.query_id)
+        variant_count = db.scalar(select(func.count()).select_from(Variant).where(Variant.hgvs == "p.V600E"))
+
+        assert second_query is not None
+        assert second_query.variant_id == variant.id
+        assert variant_count == 1
+        assert live_lookup_calls == 1
+        assert enqueued_job_ids == [submission.job_id, second_submission.job_id]
     finally:
         db.close()
 

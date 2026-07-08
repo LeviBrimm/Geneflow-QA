@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
@@ -8,6 +8,7 @@ from app.db.database import Base
 
 class Variant(Base):
     __tablename__ = "variants"
+    __table_args__ = (Index("uq_variants_gene_id_hgvs", "gene_id", "hgvs", unique=True),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     gene_id: Mapped[int] = mapped_column(ForeignKey("genes.id"), nullable=False)
