@@ -26,6 +26,7 @@
 - External reference lookup failures are captured on the query result and do not fail an otherwise valid analysis.
 - Variant evidence is persisted separately from AI explanations so source evidence remains auditable.
 - Variant records carry an explicit source marker so seeded demo records and live Ensembl VEP records remain distinguishable.
+- Variant reference rows are unique per gene and HGVS notation so repeated live lookups reuse the same stored record.
 - Worker failures are persisted in `analysis_jobs.error_message`.
 - Routes stay thin while service-level tests cover persistence and dependency failure behavior.
 - The frontend surfaces queued, processing, completed, and failed states.
