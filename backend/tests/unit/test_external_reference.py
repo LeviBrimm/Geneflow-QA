@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from app.services import external_reference
+from app.services import ensembl_client, external_reference
 from app.services.external_reference import (
     ExternalReferenceError,
     _fetch_ensembl_reference,
@@ -28,7 +28,7 @@ def test_fetch_ensembl_reference_maps_successful_response(monkeypatch):
                 "extra_field": "not retained",
             }
 
-    monkeypatch.setattr(external_reference.httpx, "get", lambda *_args, **_kwargs: FakeResponse())
+    monkeypatch.setattr(ensembl_client.httpx, "get", lambda *_args, **_kwargs: FakeResponse())
 
     result = _fetch_ensembl_reference("BRCA1", "https://rest.ensembl.org", 3.0)
 
@@ -57,7 +57,7 @@ def test_fetch_ensembl_reference_rejects_unexpected_payload(monkeypatch):
         def json(self):
             return ["not", "an", "object"]
 
-    monkeypatch.setattr(external_reference.httpx, "get", lambda *_args, **_kwargs: FakeResponse())
+    monkeypatch.setattr(ensembl_client.httpx, "get", lambda *_args, **_kwargs: FakeResponse())
 
     with pytest.raises(ExternalReferenceError):
         _fetch_ensembl_reference("BRCA1", "https://rest.ensembl.org", 3.0)
@@ -116,7 +116,7 @@ def test_fetch_ensembl_variant_reference_maps_vep_response(monkeypatch):
             ]
         )
 
-    monkeypatch.setattr(external_reference.httpx, "get", fake_get)
+    monkeypatch.setattr(ensembl_client.httpx, "get", fake_get)
 
     result = fetch_ensembl_variant_reference("BRAF", "p.V600E", "missense", "https://rest.ensembl.org", 3.0)
 
