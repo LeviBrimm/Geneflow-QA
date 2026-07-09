@@ -464,6 +464,14 @@ input:hover {
   width: fit-content;
 }
 
+.example-label {
+  color: var(--ink-muted);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
 .segmented button,
 .example-row button {
   background: transparent;

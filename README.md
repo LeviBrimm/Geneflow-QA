@@ -64,6 +64,11 @@ Example variants:
 - `CFTR ΔF508`
 - `BRAF c.1799T>A` when live Ensembl lookup is enabled
 
+Reference lookup modes:
+
+- `EXTERNAL_REFERENCE_MODE=mock` keeps demos deterministic and resolves only seeded records.
+- `EXTERNAL_REFERENCE_MODE=live` checks seeded records first, then calls Ensembl REST/VEP for non-seeded public variants.
+
 ## QA Strategy
 
 Testing is a core part of the project, not an afterthought. See [docs/test-strategy.md](docs/test-strategy.md) for the automation layers, risk areas, current coverage, and manual smoke checklist.
