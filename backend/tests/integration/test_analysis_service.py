@@ -181,7 +181,7 @@ def test_ai_dependency_failure_can_be_persisted(client, monkeypatch):
         job = start_analysis_job(db, submission.job_id)
         assert job is not None
 
-        def fail_explanation(*_):
+        def fail_explanation(*_args, **_kwargs):
             raise TimeoutError("AI service timed out")
 
         monkeypatch.setattr(analysis_service, "generate_explanation", fail_explanation)
@@ -253,12 +253,17 @@ def test_completed_analysis_persists_variant_evidence_snapshot(client):
         snapshot = db.scalar(
             select(VariantEvidenceSnapshot).where(VariantEvidenceSnapshot.query_id == submission.query_id)
         )
+        query = db.get(VariantQuery, submission.query_id)
 
         assert snapshot is not None
         assert snapshot.source == "seeded-variant-evidence"
         assert snapshot.normalized_hgvs == "NM_000546.6:c.524G>A"
         assert snapshot.impact == "MODERATE"
         assert snapshot.clinical_significance == "Pathogenic"
+        assert query is not None
+        assert query.explanation is not None
+        assert "Consequence terms: missense_variant" in query.explanation.technical_explanation
+        assert "Impact: MODERATE" in query.explanation.technical_explanation
     finally:
         db.close()
 

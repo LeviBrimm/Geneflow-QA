@@ -160,9 +160,10 @@ def complete_analysis_job(db: Session, job: AnalysisJob, ai_mode: str) -> None:
 
     external_reference = fetch_external_reference(query.variant.gene, query.variant)
     db.add(save_external_reference_snapshot(query, external_reference))
-    db.add_all(save_variant_evidence_snapshots(query, build_variant_evidence(query, query.variant)))
+    variant_evidence = build_variant_evidence(query, query.variant)
+    db.add_all(save_variant_evidence_snapshots(query, variant_evidence))
 
-    result = generate_explanation(query.variant.gene, query.variant, ai_mode)
+    result = generate_explanation(query.variant.gene, query.variant, ai_mode, evidence_results=variant_evidence)
     db.add(
         Explanation(
             query_id=query.id,
