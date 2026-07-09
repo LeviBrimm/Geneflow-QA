@@ -70,8 +70,8 @@ export function HomePage() {
           <p className="eyebrow">Workbench</p>
           <h2>Variant intake</h2>
           <p className="rail-copy">
-            Submit one public HGVS-style variant at a time. GeneFlow checks seeded records first, then falls back to
-            live Ensembl evidence.
+            Submit one public HGVS-style variant at a time. GeneFlow checks seeded demo records first and can fall back
+            to live Ensembl evidence when live mode is enabled.
           </p>
         </div>
         <div className="rail-specimen">
@@ -98,8 +98,9 @@ export function HomePage() {
         </div>
 
         <p className="lede">
-          GeneFlow validates the submitted notation, resolves public reference data through local seeds or Ensembl,
-          queues analysis work, stores history, and produces an educational report with guarded explanations.
+          GeneFlow validates the submitted notation, resolves public reference data through seeded records or configured
+          Ensembl lookup, queues analysis work, stores history, and produces an educational report with guarded
+          explanations.
         </p>
 
         {isAuthed ? (

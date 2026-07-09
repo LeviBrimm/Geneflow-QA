@@ -68,6 +68,7 @@ def test_invalid_variant_returns_422(client, auth_headers):
 def test_unknown_variant_returns_404(client, auth_headers):
     response = client.post("/api/variants/analyze", json={"raw_input": "BRCA1 c.9999dupC"}, headers=auth_headers)
     assert response.status_code == 404
+    assert "seeded demo records" in response.json()["detail"]
 
 
 def test_missing_job_and_query_return_404(client, auth_headers):

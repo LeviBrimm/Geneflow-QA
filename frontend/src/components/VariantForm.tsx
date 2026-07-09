@@ -17,6 +17,7 @@ export function VariantForm({ onSubmit, disabled }: { onSubmit: (rawInput: strin
         Variant input
         <input value={rawInput} onChange={(event) => setRawInput(event.target.value)} disabled={disabled} required />
       </label>
+      <span className="example-label">Demo shortcuts</span>
       <div className="example-row">
         {examples.map((example) => (
           <button type="button" key={example} onClick={() => setRawInput(example)} disabled={disabled}>

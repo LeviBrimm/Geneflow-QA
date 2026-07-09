@@ -6,6 +6,7 @@ from typing import Protocol
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.config.settings import get_settings
 from app.models.user import User
 from app.models.variant import AnalysisJob, Explanation, VariantQuery
 from app.services.ai_explainer import generate_explanation
@@ -60,11 +61,11 @@ def submit_variant_analysis(
 
     try:
         variant = resolve_variant_reference(db, parsed)
-    except Exception as exc:  # noqa: BLE001 - live reference failures should return a user-facing validation error.
+    except Exception as exc:  # noqa: BLE001 - external reference failures should become API validation errors.
         db.rollback()
-        raise VariantReferenceNotFoundError(f"Variant was not found in local or Ensembl reference data: {exc}") from exc
+        raise VariantReferenceNotFoundError(_reference_lookup_failed_message(exc)) from exc
     if not variant:
-        raise VariantReferenceNotFoundError("Variant not found in reference data.")
+        raise VariantReferenceNotFoundError(_reference_not_found_message())
 
     query = VariantQuery(
         user_id=user.id,
@@ -224,3 +225,20 @@ def _external_reference(query: VariantQuery) -> dict:
         "summary": snapshot.summary,
         "error_message": snapshot.error_message,
     }
+
+
+def _reference_not_found_message() -> str:
+    mode = get_settings().external_reference_mode.lower()
+    if mode == "live":
+        return "Variant was not found in seeded records or Ensembl VEP."
+    return (
+        "Variant was not found in seeded demo records. "
+        "Set EXTERNAL_REFERENCE_MODE=live to enable Ensembl fallback for non-seeded variants."
+    )
+
+
+def _reference_lookup_failed_message(error: Exception) -> str:
+    mode = get_settings().external_reference_mode.lower()
+    if mode == "live":
+        return f"Ensembl lookup failed while resolving this variant: {error}"
+    return f"Reference lookup failed while resolving this variant: {error}"

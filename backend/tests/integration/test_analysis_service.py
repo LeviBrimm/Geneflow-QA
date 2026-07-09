@@ -67,8 +67,35 @@ def test_unknown_variant_submission_does_not_create_rows(client):
     try:
         before = _query_count(db)
 
-        with pytest.raises(VariantReferenceNotFoundError):
+        with pytest.raises(VariantReferenceNotFoundError, match="seeded demo records"):
             submit_variant_analysis(db, user, "BRCA1 c.9999dupC", lambda _: None)
+
+        assert _query_count(db) == before
+    finally:
+        db.close()
+
+
+def test_live_reference_failure_returns_actionable_error(client, monkeypatch):
+    user = _registered_user(client, "service-live-reference-failure@example.com")
+    settings = SimpleNamespace(
+        external_reference_mode="live",
+        external_reference_base_url="https://rest.ensembl.org",
+        external_reference_timeout_seconds=0.01,
+    )
+    monkeypatch.setattr(analysis_service, "get_settings", lambda: settings)
+    monkeypatch.setattr(reference_data, "get_settings", lambda: settings)
+
+    def fail_ensembl_reference(*_args, **_kwargs):
+        raise TimeoutError("VEP lookup timed out")
+
+    monkeypatch.setattr(reference_data, "fetch_ensembl_variant_reference", fail_ensembl_reference)
+
+    db = SessionLocal()
+    try:
+        before = _query_count(db)
+
+        with pytest.raises(VariantReferenceNotFoundError, match="Ensembl lookup failed"):
+            submit_variant_analysis(db, user, "BRAF p.V600E", lambda _: None)
 
         assert _query_count(db) == before
     finally:
