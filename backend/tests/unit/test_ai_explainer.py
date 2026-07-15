@@ -1,3 +1,5 @@
+from dataclasses import replace
+
 from app.models.gene import Gene
 from app.models.variant import Variant
 from app.services.ai_explainer import DISCLAIMER, build_prompt, generate_explanation
@@ -44,6 +46,28 @@ def test_mock_explanation_is_grounded_in_variant_evidence():
     assert "Consequence terms: missense_variant" in result.technical_explanation
     assert "Impact: MODERATE" in result.technical_explanation
     assert "Transcript ID: ENST00000646891" in result.technical_explanation
+
+
+def test_mock_explanation_falls_back_to_variant_data_without_evidence():
+    gene = Gene(symbol="BRAF", full_name="B-Raf proto-oncogene", description="test")
+    variant = _variant()
+    variant.reference_source = "curated-reference"
+
+    result = generate_explanation(gene, variant)
+
+    assert "resolved from curated-reference evidence" in result.general_explanation
+    assert "Consequence terms: not available" in result.technical_explanation
+
+
+def test_prompt_uses_first_evidence_when_no_lookup_succeeded():
+    gene = Gene(symbol="BRAF", full_name="B-Raf proto-oncogene", description="test")
+    variant = _variant()
+    evidence = replace(_evidence(), lookup_status="failed")
+
+    prompt = build_prompt(gene, variant, evidence_results=[evidence])
+
+    assert "Evidence source: Ensembl VEP" in prompt
+    assert "Evidence level: live_external_match" in prompt
 
 
 def _variant() -> Variant:
